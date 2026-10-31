@@ -1,11 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Brain, Check, ChevronDown, Copy, FileText, ImageIcon, RefreshCw, Stamp, ThumbsDown, ThumbsUp,
-} from "lucide-react";
+import { Check, Copy, FileText, ImageIcon, RefreshCw, Stamp, ThumbsDown, ThumbsUp } from "lucide-react";
 
 import { Mark } from "@/components/ui/mark";
+import { Sources } from "./sources";
 import { useStore } from "@/lib/store";
 import type { ChatMessage } from "@/lib/types";
 
@@ -14,7 +13,6 @@ import { Markdown } from "./markdown";
 export function MessageRow({ message, isLast }: { message: ChatMessage; isLast: boolean }) {
   const { settings, agents, retry, pushToast } = useStore();
   const [copied, setCopied] = useState(false);
-  const [showReasoning, setShowReasoning] = useState(false);
   const agent = agents.find((a) => a.id === message.agentId) || agents[0];
   const isUser = message.role === "user";
   const compact = settings.compactBubbles;
@@ -89,28 +87,6 @@ export function MessageRow({ message, isLast }: { message: ChatMessage; isLast: 
           )}
         </div>
 
-        {/* reasoning trace */}
-        {!!message.reasoning?.trim() && settings.showReasoning && (
-          <div className="reasoning mb-2.5 overflow-hidden">
-            <button
-              onClick={() => setShowReasoning((v) => !v)}
-              className="flex w-full items-center gap-2 px-2.5 py-1.5 text-left text-[10.5px] font-medium text-muted transition-colors hover:text-fg"
-            >
-              <Brain className="size-3.5 text-accent" />
-              <span>Raciocínio da Keew</span>
-              <span className="font-mono text-[9.5px] text-subtle">
-                {message.reasoning.split(/\s+/).length} palavras
-              </span>
-              <ChevronDown className={`ml-auto size-3.5 transition-transform ${showReasoning ? "rotate-180" : ""}`} />
-            </button>
-            {showReasoning && (
-              <div className="border-t border-dashed border-accent-line/50 px-2.5 py-2 text-[11.5px] leading-relaxed text-muted">
-                <Markdown content={message.reasoning} />
-              </div>
-            )}
-          </div>
-        )}
-
         {message.content ? (
           <div className={`text-[13.5px] leading-[1.72] text-fg ${compact ? "md-compact" : ""}`}>
             <Markdown content={message.content} />
@@ -126,6 +102,8 @@ export function MessageRow({ message, isLast }: { message: ChatMessage; isLast: 
             <span className="font-mono text-[10.5px] text-subtle">Keew está processando…</span>
           </div>
         ) : null}
+
+        {!message.pending && !!message.citations?.length && <Sources citations={message.citations} />}
 
         {/* actions */}
         {!message.pending && (

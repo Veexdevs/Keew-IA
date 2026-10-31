@@ -90,17 +90,18 @@ def make_renderer(mask: np.ndarray):
         tight=False keeps the designer's original padding (used for app icons).
         tight=True crops to the glyph with `margin` breathing room (used for marks).
         """
-        if tight:
-            x0, y0, x1, y1 = bbox(mask)
-            side = max(x1 - x0, y1 - y0)
-            pad = int(side * margin)
-            box = (max(x0 - pad, 0), max(y0 - pad, 0), min(x1 + pad, S), min(y1 + pad, S))
-            side_box = max(box[2] - box[0], box[3] - box[1])
-            cx, cy = (box[0] + box[2]) // 2, (box[1] + box[3]) // 2
-            box = (cx - side_box // 2, cy - side_box // 2, cx + side_box // 2, cy + side_box // 2)
-            src_a, src_c = alpha.crop(box), None
-        else:
-            src_a = alpha
+        # Every icon is composed from the glyph's own bounding box. The artwork's
+        # original canvas is asymmetric (more air on top than at the bottom), so
+        # trusting it made the mark sit high and touch the bottom edge on small
+        # icons. Cropping to the glyph and re-padding symmetrically fixes that.
+        gx0, gy0, gx1, gy1 = ink_bbox()
+        gw, gh = gx1 - gx0, gy1 - gy0
+        # the glyph's longest side + symmetric breathing room = final square
+        side_box = int(round(max(gw, gh) * (1 + 2 * margin)))
+        src_a = Image.new("L", (side_box, side_box), 0)
+        # paste by the glyph's centre so left == right and top == bottom
+        src_a.paste(alpha.crop((gx0, gy0, gx1, gy1)), ((side_box - gw) // 2, (side_box - gh) // 2))
+        _ = tight
         canvas = Image.new("RGBA", src_a.size, bg_hex if bg_hex else (0, 0, 0, 0))
         if mark_hex:
             layer = Image.new("RGBA", src_a.size, mark_hex)
@@ -119,6 +120,41 @@ def make_renderer(mask: np.ndarray):
             os.makedirs(os.path.dirname(out), exist_ok=True)
             img.save(out)
         return img
+
+    def ink_bbox(threshold_frac=0.004, min_run=3):
+        """Bounding box of the *real* artwork.
+
+        The source PNG carries a few stray noise pixels (one lit pixel at y=129,
+        while the glyph starts at y=245). A naive bbox includes them and pushes
+        the whole mark upward in every generated icon, which is exactly what made
+        the logo look cropped. We require a minimum amount of ink per row/column
+        before considering it part of the glyph.
+        """
+        rows = mask.sum(axis=1)
+        cols = mask.sum(axis=0)
+        row_thr = max(2, int(mask.shape[1] * threshold_frac))
+        col_thr = max(2, int(mask.shape[0] * threshold_frac))
+        strong_rows = np.nonzero(rows >= row_thr)[0]
+        strong_cols = np.nonzero(cols >= col_thr)[0]
+        # require `min_run` consecutive qualifying rows/cols so a lone cluster fails
+        def span(idx):
+            best = (int(idx[0]), int(idx[0]))
+            start = prev = int(idx[0])
+            for v in idx[1:]:
+                v = int(v)
+                if v != prev + 1:
+                    if prev - start + 1 > best[1] - best[0]:
+                        best = (start, prev)
+                    start = v
+                prev = v
+            if prev - start + 1 > best[1] - best[0]:
+                best = (start, prev)
+            return best
+        y0, y1 = span(strong_rows)
+        x0, x1 = span(strong_cols)
+        if y1 - y0 < min_run or x1 - x0 < min_run:
+            return bbox(mask)
+        return x0, y0, x1 + 1, y1 + 1
 
     return render
 
@@ -189,7 +225,9 @@ def main() -> None:
     subprocess.run(["convert", *ico_srcs, os.path.join(ROOT, "dist/icons", "icon.ico")], check=True)
     for size in (16, 32, 48, 64, 128, 256, 512):
         render(W, BLUE, size, 0.225, tight=True, margin=0.16, out=os.path.join(ROOT, "dist/icons", f"{size}x{size}.png"))
-    render(W, BLUE, 512, 0.225, tight=True, margin=0.16, out=os.path.join(ROOT, "build/icon.png"))
+    # electron-builder reads apps/desktop/build
+    render(W, BLUE, 1024, 0.225, tight=True, margin=0.16,
+           out=os.path.join(ROOT, "apps/desktop/build/icon.png"))
 
     # --- capacitor (android / ios) -----------------------------------------
     res = os.path.join(ROOT, "apps/mobile/resources")

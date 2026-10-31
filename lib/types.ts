@@ -14,6 +14,14 @@ export type Attachment = {
   dataUrl?: string;
 };
 
+export type Citation = {
+  title: string;
+  url?: string;
+  /** texto do trecho / explicação curta */
+  snippet?: string;
+  kind?: "knowledge" | "web";
+};
+
 export type ChatMessage = {
   id: string;
   role: Role;
@@ -26,7 +34,7 @@ export type ChatMessage = {
   /** streaming state */
   pending?: boolean;
   error?: string;
-  citations?: { title: string; url?: string; snippet?: string }[];
+  citations?: Citation[];
   tokens?: { in?: number; out?: number };
 };
 

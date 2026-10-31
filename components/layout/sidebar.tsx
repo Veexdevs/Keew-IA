@@ -1,10 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  Check, ChevronsUpDown, Command, Download, MoreHorizontal, Pencil, Pin, PinOff,
-  Plus, Search, Settings2, Trash2, X,
-} from "lucide-react";
+import { Check, ChevronsUpDown, Command, Download, MessageSquare, MoreHorizontal, Pencil, Pin, PinOff, Plus, Search, Settings2, Trash2, X } from "lucide-react";
 
 import { Wordmark } from "@/components/ui/mark";
 import { isSupabaseReady } from "@/lib/flags";
@@ -33,7 +30,6 @@ export function Sidebar() {
   const [draft, setDraft] = useState("");
 
   const current = chats.find((c) => c.id === currentChatId) || chats[0];
-  const agent = agents.find((a) => a.id === current?.agentId) || agents[0];
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -147,7 +143,6 @@ export function Sidebar() {
                 {items.map((chat) => {
                   const active = chat.id === current?.id;
                   const isRenaming = renaming === chat.id;
-                  const chatAgent = agents.find((a) => a.id === chat.agentId);
                   return (
                     <li key={chat.id} className="group/row relative">
                       {isRenaming ? (
@@ -181,7 +176,7 @@ export function Sidebar() {
                               active ? "bg-accent/15 text-accent" : "bg-elev text-subtle group-hover/row:text-muted"
                             }`}
                           >
-                            {chat.pinned ? <Pin className="size-2.5" /> : chatAgent?.emoji || "◆"}
+                            {chat.pinned ? <Pin className="size-2.5" /> : <MessageSquare className="size-2.5" />}
                           </span>
                           <span className="truncate">{chat.title}</span>
                           {chat.messages.length > 0 && (
@@ -265,25 +260,8 @@ export function Sidebar() {
           ))}
         </nav>
 
-        {/* footer — agent switcher + account */}
+        {/* footer — account */}
         <div className="space-y-1 border-t border-line p-2">
-          <button
-            onClick={() => openSettings("agentes")}
-            className="flex w-full items-center gap-2 rounded-[var(--r-sm)] px-2 py-1.5 text-left transition-colors hover:bg-elev"
-          >
-            <span
-              className="grid size-6 shrink-0 place-items-center rounded-[6px] text-[11px]"
-              style={{ background: "color-mix(in srgb, var(--accent) 14%, transparent)", color: agent?.accent || "var(--accent)" }}
-            >
-              {agent?.emoji || "◆"}
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-[12px] font-medium text-fg">{agent?.name}</span>
-              <span className="block truncate text-[10px] text-subtle">Agente ativo · trocar</span>
-            </span>
-            <ChevronsUpDown className="size-3.5 shrink-0 text-subtle" />
-          </button>
-
           <div className="flex items-center gap-1">
             <button
               onClick={() => openSettings("conta")}

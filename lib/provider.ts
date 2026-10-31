@@ -34,6 +34,7 @@ export type StreamFrame =
   | { t: "reasoning"; v: string }
   | { t: "text"; v: string }
   | { t: "usage"; v: { in?: number; out?: number } }
+  | { t: "sources"; v: { title: string; url?: string; snippet?: string; kind?: "knowledge" | "web" }[] }
   | { t: "error"; v: string }
   | { t: "done" };
 
