@@ -16,6 +16,7 @@ import type { NextRequest } from "next/server";
 import { APP_VERSION, clientIp, guard, rateLimit } from "@/lib/api-utils";
 import { KEEW_CORPUS, buildIndex, search, toContext } from "@/lib/knowledge";
 import { reason } from "@/lib/local-engine";
+import { extractCitations } from "@/lib/citations";
 import { isConfigured, resolveConfig, streamChat, type StreamFrame } from "@/lib/provider";
 import type { ChatMessage, KnowledgeDoc } from "@/lib/types";
 
@@ -76,12 +77,18 @@ export async function POST(req: NextRequest) {
 
       // skill determinística resolvida com confiança alta → sem chamada externa
       if (local.terminal && local.confidence >= 0.8) {
-        emitPrompt({ t: "reasoning", v: `**Núcleo local · ${local.skill}**\n\n${local.reasoning || ""}\n\n` });
         // stream the answer in readable chunks so the UI behaves like any reply
         const chunks = chunk(local.answer, 42);
         for (const c of chunks) {
           emit({ t: "text", v: c });
           await sleep(8);
+        }
+        if (local.skill === "knowledge") {
+          const hitDocs = search(buildIndex(localDocs), last.content, 3).map((d) => ({
+            title: d.title,
+            snippet: (d.excerpt || d.content).slice(0, 240),
+          }));
+          if (hitDocs.length) emit({ t: "sources", v: hitDocs.map((d) => ({ ...d, kind: "knowledge" as const })) });
         }
         emit({ t: "usage", v: { in: 0, out: 0 } });
         emit({ t: "done" });
@@ -90,7 +97,6 @@ export async function POST(req: NextRequest) {
       }
 
       if (mode === "local" || !ready) {
-        emitPrompt({ t: "reasoning", v: `**Núcleo local · ${local.skill}**\n\n${local.reasoning || ""}\n\n` });
         for (const c of chunk(local.answer, 42)) {
           emit({ t: "text", v: c });
           await sleep(8);
@@ -104,14 +110,6 @@ export async function POST(req: NextRequest) {
       const index = buildIndex(localDocs);
       const hits = search(index, last.content, 4);
       const context = toContext(hits);
-
-      emitPrompt({
-        t: "reasoning",
-        v:
-          `**Keew · raciocínio**\n\n` +
-          `- Contexto recuperado: ${hits.length} documento(s)\n` +
-          `- Núcleo local: ${local.skill} (confiança ${(local.confidence * 100).toFixed(0)}%)\n\n`,
-      });
 
       const system = buildSystem(body.system, context, local);
 
@@ -141,7 +139,7 @@ export async function POST(req: NextRequest) {
             try { frame = JSON.parse(line.slice(5).trim()); } catch { continue; }
             if (frame.t === "error") {
               engineFailed = true;
-              emit({ t: "reasoning", v: `\n> ⚠️ ${frame.v}\n\n` });
+              emit({ t: "text", v: `\n\n> ${frame.v}\n` });
               continue;
             }
             if (frame.t === "text") produced += frame.v;
@@ -150,15 +148,11 @@ export async function POST(req: NextRequest) {
         }
       } catch (err) {
         engineFailed = true;
-        emit({ t: "reasoning", v: `\n> ⚠️ ${(err as Error).message}\n\n` });
+        emit({ t: "text", v: `\n\n> A Keew oscilou na conexão.\n` });
       }
 
       // ── 4 · resilience: never leave the user with nothing ──────────────
       if (engineFailed && !produced.trim()) {
-        emit({
-          t: "reasoning",
-          v: "",
-        });
         const rescue = reason(last.content, localDocs);
         for (const c of chunk(rescue.answer, 42)) {
           emit({ t: "text", v: c });
@@ -167,6 +161,13 @@ export async function POST(req: NextRequest) {
       } else if (engineFailed) {
         emit({ t: "text", v: "\n\n> A conexão oscilou no meio da resposta. O que está acima foi entregue; o núcleo próprio continua disponível." });
       }
+
+      // fontes: documentos da base + links citados na própria resposta
+      const sources = extractCitations(
+        produced,
+        hits.map((d) => ({ title: d.title, content: d.excerpt || d.content })),
+      );
+      if (sources.length) emit({ t: "sources", v: sources.map((s) => ({ ...s, kind: s.kind ?? "web" })) });
 
       emit({ t: "done" });
       controller.close();

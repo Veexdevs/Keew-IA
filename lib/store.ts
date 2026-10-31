@@ -11,7 +11,7 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import { BUILTIN_AGENTS, agentById } from "./agents";
 import { KEEW_CORPUS } from "./knowledge";
 import type {
-  Agent, Automation, Chat, ChatMessage, KnowledgeDoc, ProviderConfig, Settings, UsageStats,
+  Agent, Automation, Chat, ChatMessage, Citation, KnowledgeDoc, ProviderConfig, Settings, UsageStats,
 } from "./types";
 
 export const uid = (prefix = "id") =>
@@ -487,6 +487,7 @@ async function runStream({ chatId, assistantId, history, agent, system }: RunArg
 
   let content = "";
   let reasoning = "";
+  let sources: Citation[] = [];
   let usage: { in?: number; out?: number } = {};
   let lastFlush = 0;
   let raf = 0;
@@ -544,12 +545,22 @@ async function runStream({ chatId, assistantId, history, agent, system }: RunArg
         try { data = JSON.parse(line.slice(5).trim()); } catch { continue; }
         if (data.t === "text") { content += data.v; scheduleFlush(); }
         else if (data.t === "reasoning") { reasoning += data.v; scheduleFlush(); }
+        else if (data.t === "sources") { sources = Array.isArray(data.v) ? data.v : []; }
         else if (data.t === "usage") { usage = { ...usage, ...data.v }; }
-        else if (data.t === "error") { reasoning += `\n\n> ⚠️ ${data.v}`; scheduleFlush(); }
+        else if (data.t === "error") { content += `\n\n> ${data.v}`; scheduleFlush(); }
       }
     }
 
-    flush({ content, reasoning, pending: false, tokens: { in: usage.in, out: usage.out } }, false);
+    flush(
+      {
+        content,
+        reasoning,
+        citations: sources.length ? sources : undefined,
+        pending: false,
+        tokens: { in: usage.in, out: usage.out },
+      },
+      false,
+    );
     useStore.getState().noteUsage(usage.out || content.length / 4, usage.in || 0);
     if (useStore.getState().settings.soundOnDone) ding();
   } catch (err) {
@@ -560,7 +571,7 @@ async function runStream({ chatId, assistantId, history, agent, system }: RunArg
       const msg = (err as Error).message || "Erro inesperado";
       flush(
         {
-          content: content || `**Não consegui falar com o gateway.**\n\n\`${msg}\`\n\nVerifique **Configurações → Modelo** ou use o modo **Local** — o núcleo próprio continua funcionando offline.`,
+          content: content || `**Não consegui concluir agora.**\n\n${msg}\n\nTente de novo em instantes — o núcleo próprio continua respondendo cálculos, datas e conversões.`,
           reasoning,
           pending: false,
           error: msg,
