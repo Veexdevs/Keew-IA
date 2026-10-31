@@ -1,0 +1,83 @@
+/**
+ * Keew mark — vector, monochrome, inherits `currentColor` so any theme can
+ * recolour it. Sourced from the designer artwork (see tools/build_brand.py).
+ */
+const VIEWBOX = "257.29108258024445 223.55413773750925 762.2835036785409 773.8247222741046";
+const PATH =
+  "M678.0,973.4C740.8,966.9 806.9,940.6 856.0,902.6C912.8,858.6 956.1,797.9 978.4,730.8C987.6,703.4 "
+  "992.1,683.2 995.6,655.0C997.6,638.0 997.1,591.9 994.5,574.0C991.7,553.9 983.1,519.2 "
+  "977.0,502.6C973.3,492.8 965.9,489.4 958.3,494.0C954.8,496.1 951.0,502.5 951.0,506.4C951.0,514.4 "
+  "943.4,542.6 936.4,560.7C920.4,601.6 896.4,635.2 865.9,659.3C855.8,667.2 852.7,671.1 "
+  "851.6,677.0C849.7,687.4 834.3,722.2 823.5,740.6C790.0,797.7 734.0,846.5 675.3,869.9C640.8,883.6 "
+  "614.2,888.8 575.0,889.6C553.2,890.1 547.3,889.9 534.5,888.2C496.6,883.1 462.8,871.8 "
+  "429.0,852.7C417.7,846.3 404.1,837.2 386.6,824.5C375.6,816.5 375.6,816.5 369.3,816.5C363.6,816.5 "
+  "362.8,816.8 359.9,819.6C357.6,821.9 356.7,824.0 356.3,827.1C355.9,831.0 356.3,832.3 "
+  "360.0,838.0C372.3,856.8 403.3,887.3 430.5,907.1C474.0,938.9 516.9,957.6 572.5,969.0C604.8,975.6 "
+  "641.4,977.2 678.0,973.4ZM312.9,721.4C316.2,718.7 317.0,716.3 319.5,703.0C323.0,684.3 334.1,657.1 "
+  "345.9,638.0C361.6,612.7 382.0,592.9 408.5,577.1C420.7,569.9 422.8,567.3 426.0,555.6C435.0,522.8 "
+  "449.8,491.6 470.8,461.0C494.5,426.3 529.1,393.1 565.0,370.6C578.0,362.4 604.1,349.4 "
+  "617.5,344.5C650.0,332.4 679.7,327.0 713.0,327.0C749.9,327.0 782.9,335.0 817.5,352.2C833.9,360.4 "
+  "838.9,363.3 857.2,375.3C871.9,384.8 876.3,386.5 882.2,384.9C886.1,383.9 890.6,379.4 "
+  "891.6,375.5C893.1,369.6 885.1,357.2 869.6,341.1C828.7,298.9 768.8,266.5 708.8,254.1C684.4,249.1 "
+  "669.3,247.6 641.5,247.6C616.1,247.5 605.2,248.4 584.0,252.1C508.4,265.3 438.6,302.1 "
+  "386.4,356.3C339.3,405.1 304.7,468.7 289.5,534.3C283.5,560.6 281.9,573.6 281.3,601.0C280.5,640.4 "
+  "284.6,671.7 295.4,708.3C298.5,719.0 299.3,720.6 302.8,722.4C306.8,724.6 309.5,724.3 312.9,721.4Z";
+
+export function Mark({
+  size = 28,
+  className = "",
+  title = "Keew IA",
+}: {
+  size?: number;
+  className?: string;
+  title?: string;
+}) {
+  return (
+    <svg
+      viewBox={VIEWBOX}
+      width={size}
+      height={size}
+      className={className}
+      role="img"
+      aria-label={title}
+      fill="currentColor"
+      style={{ display: "block" }}
+    >
+      <path d={PATH} fillRule="evenodd" clipRule="evenodd" />
+    </svg>
+  );
+}
+
+/** Wordmark: mark + "Keew" + IA, used in the sidebar and auth screens. */
+export function Wordmark({
+  size = 22,
+  showVersion = false,
+  className = "",
+}: {
+  size?: number;
+  showVersion?: boolean;
+  className?: string;
+}) {
+  return (
+    <div className={`flex items-center gap-2.5 ${className}`}>
+      <span
+        className="grid place-items-center rounded-[9px] bg-accent text-accent-fg shadow-[0_2px_10px_-2px_rgb(var(--glow)/0.55)]"
+        style={{ width: size + 8, height: size + 8 }}
+      >
+        <Mark size={size - 2} title="" />
+      </span>
+      <span className="leading-none">
+        <span className="flex items-baseline gap-1.5">
+          <span className="text-[15px] font-semibold tracking-tight text-fg">Keew</span>
+          <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-accent">IA</span>
+        </span>
+        {showVersion && (
+          <span className="mt-1 flex items-center gap-1.5 text-[9px] font-medium uppercase tracking-[0.14em] text-subtle">
+            <span className="size-1 rounded-full bg-accent pulse-dot" />
+            v1.0 · online
+          </span>
+        )}
+      </span>
+    </div>
+  );
+}

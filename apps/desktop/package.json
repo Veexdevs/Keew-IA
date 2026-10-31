@@ -1,0 +1,73 @@
+{
+  "name": "keew-ia-desktop",
+  "version": "1.0.0",
+  "private": true,
+  "description": "App desktop da Keew IA (Windows · macOS · Linux) com Electron.",
+  "main": "main.js",
+  "scripts": {
+    "dev": "electron .",
+    "build": "electron-builder --dir",
+    "build:win": "electron-builder --win nsis portable",
+    "build:mac": "electron-builder --mac dmg zip",
+    "build:linux": "electron-builder --linux AppImage deb"
+  },
+  "dependencies": {
+    "electron-updater": "^6.3.9"
+  },
+  "devDependencies": {
+    "electron": "^32.1.2",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "ai.keew.app",
+    "productName": "Keew IA",
+    "copyright": "Copyright © 2026 Veexdevs",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "build/**"
+    ],
+    "extraMetadata": {
+      "name": "keew-ia"
+    },
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64", "arm64"] },
+        { "target": "portable", "arch": ["x64"] }
+      ],
+      "icon": "build/icon.ico",
+      "artifactName": "Keew-IA-${version}-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Keew IA"
+    },
+    "mac": {
+      "target": [
+        { "target": "dmg", "arch": ["arm64", "x64"] },
+        { "target": "zip", "arch": ["arm64"] }
+      ],
+      "icon": "build/icon.png",
+      "category": "public.app-category.productivity",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "artifactName": "Keew-IA-${version}-${arch}.${ext}"
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "icon": "build/icon.png",
+      "category": "Utility",
+      "synopsis": "Keew IA — inteligência artificial própria",
+      "artifactName": "Keew-IA-${version}-${arch}.${ext}"
+    },
+    "publish": null
+  }
+}

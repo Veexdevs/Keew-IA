@@ -1,0 +1,65 @@
+# Keew IA — build de apps nativos em todas as plataformas.
+# Dispare manualmente ou em tag v*; os artefatos vão para o GitHub Releases.
+name: keew-release
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+jobs:
+  desktop:
+    name: Desktop (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npm --prefix apps/desktop ci
+      - name: Build
+        working-directory: apps/desktop
+        run: |
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then npx electron-builder --win nsis portable
+          elif [ "${{ matrix.os }}" = "macos-latest" ]; then npx electron-builder --mac dmg zip
+          else npx electron-builder --linux AppImage deb; fi
+        shell: bash
+      - uses: actions/upload-artifact@v4
+        with:
+          name: keew-desktop-${{ matrix.os }}
+          path: |
+            apps/desktop/release/*.exe
+            apps/desktop/release/*.dmg
+            apps/desktop/release/*.AppImage
+            apps/desktop/release/*.deb
+          if-no-files-found: ignore
+
+  android:
+    name: Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 17 }
+      - uses: android-actions/setup-android@v3
+      - run: npm ci
+      - run: npm --prefix apps/mobile ci || npm --prefix apps/mobile install
+      - name: Capacitor sync
+        env: { KEEW_APP_URL: "https://keew-ia.vercel.app" }
+        run: |
+          cd apps/mobile
+          npx cap add android || true
+          npx cap sync android
+      - name: Assemble
+        working-directory: apps/mobile/android
+        run: ./gradlew assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: keew-android-apk
+          path: apps/mobile/android/app/build/outputs/apk/debug/*.apk

@@ -1,0 +1,52 @@
+{
+  "name": "keew-ia",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Keew IA — assistente de IA própria com workspace, temas, agentes e deploy multi-plataforma (Web, APK, IPA, EXE).",
+  "author": "Keew IA",
+  "license": "MIT",
+  "scripts": {
+    "dev": "next dev -H 0.0.0.0 -p 3000",
+    "build": "next build",
+    "start": "next start -H 0.0.0.0 -p 3000",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "brand": "python3 tools/build_brand.py",
+    "mobile:sync": "cd apps/mobile && npx cap sync",
+    "mobile:android": "cd apps/mobile && npx cap add android && npx cap open android",
+    "mobile:ios": "cd apps/mobile && npx cap add ios && npx cap open ios",
+    "desktop:dev": "cd apps/desktop && npm run dev",
+    "desktop:build": "cd apps/desktop && npm run build",
+    "desktop:win": "cd apps/desktop && npm run build:win",
+    "desktop:mac": "cd apps/desktop && npm run build:mac",
+    "desktop:linux": "cd apps/desktop && npm run build:linux",
+    "test": "tsx --test tests/**/*.test.ts",
+    "setup": "node scripts/setup.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.118.0",
+    "geist": "^1.9.0",
+    "highlight.js": "^11.10.0",
+    "katex": "^0.16.11",
+    "lucide-react": "^0.544.0",
+    "next": "15.5.28",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "react-markdown": "^10.1.0",
+    "rehype-highlight": "^7.0.0",
+    "rehype-katex": "^7.0.1",
+    "remark-gfm": "^4.0.0",
+    "remark-math": "^6.0.0",
+    "zustand": "^5.0.16"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.13",
+    "@types/node": "^22.7.4",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^4.1.13",
+    "typescript": "^5.6.2",
+    "tsx": "^4.19.1"
+  }
+}
