@@ -36,10 +36,11 @@ export const DEFAULT_SETTINGS: Settings = {
   defaultModel: "",
 };
 
+/** A Keew é a única inteligência: não há provedor externo para configurar. */
 const DEFAULT_PROVIDER: ProviderConfig = {
-  kind: "deepseek",
+  kind: "local",
   baseUrl: "",
-  model: "",
+  model: "keew-1",
   apiKey: "",
 };
 
@@ -517,20 +518,13 @@ async function runStream({ chatId, assistantId, history, agent, system }: RunArg
         system,
         agentId: agent.id,
         temperature: agent.temperature,
-        model: s.provider.model || undefined,
-        client: {
-          kind: s.provider.kind,
-          baseUrl: s.provider.baseUrl || undefined,
-          apiKey: s.provider.apiKey || undefined,
-          model: s.provider.model || undefined,
-        },
         knowledge: s.knowledge,
       }),
     });
 
     if (!res.ok || !res.body) {
       const detail = await res.json().catch(() => ({}));
-      throw new Error(detail?.error || `Falha ${res.status} no gateway.`);
+      throw new Error(detail?.error || `Falha ${res.status} no serviço da Keew.`);
     }
 
     const reader = res.body.getReader();

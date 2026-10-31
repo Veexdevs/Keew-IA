@@ -11,7 +11,6 @@ import { THEME_MAP, type ThemeId } from "@/lib/themes";
 type Health = {
   ok: boolean;
   model: string;
-  provider: string;
   configured: boolean;
   uptimeSec: number;
   region?: string;
@@ -89,7 +88,7 @@ export function Topbar() {
         <button
           onClick={() => openSettings("sistema")}
           className="hidden items-center gap-1.5 rounded-full border border-line bg-panel px-2 py-1 text-[10.5px] transition-colors hover:border-line-strong sm:flex"
-          title={health?.configured ? "Gateway conectado" : "Núcleo local ativo — configure um provedor para o modelo grande"}
+          title={health?.configured ? "Keew 1 · raciocínio completo" : "Keew Core · núcleo determinístico ativo"}
         >
           <span
             className={`size-1.5 rounded-full ${
@@ -97,7 +96,7 @@ export function Topbar() {
             } ${health?.configured ? "pulse-dot" : ""} ${health?.configured ? "text-emerald-500" : ""}`}
           />
           <span className="font-medium text-fg">
-            {health?.configured ? "24/7 online" : health ? "local ativo" : "offline"}
+            {health?.configured ? "24/7 online" : health ? "núcleo ativo" : "offline"}
           </span>
           <span className="hidden font-mono text-[9.5px] text-subtle lg:inline">
             {health?.configured ? health.model?.slice(0, 18) : "KRL"}

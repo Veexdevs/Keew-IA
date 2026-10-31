@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 /**
  * Keew IA — setup interativo (1 minuto).
- * Cria .env.local, valida o gateway e imprime o próximo passo.
+ * Cria o .env.local com o motor de raciocínio da Keew e imprime o próximo passo.
+ *
+ * Não existe menu de fornecedores: a Keew tem um motor só. Você só informa
+ * onde ele roda e qual é a chave dele.
  */
 import { createInterface } from "node:readline/promises";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
@@ -11,14 +14,6 @@ import { stdin, stdout } from "node:process";
 const rl = createInterface({ input: stdin, output: stdout });
 const ENV = ".env.local";
 
-const PROVIDERS = {
-  1: { id: "deepseek", name: "DeepSeek (recomendado — R1)", base: "https://api.deepseek.com/v1", model: "deepseek-reasoner", url: "https://platform.deepseek.com/api_keys" },
-  2: { id: "openrouter", name: "OpenRouter (vários modelos)", base: "https://openrouter.ai/api/v1", model: "deepseek/deepseek-r1", url: "https://openrouter.ai/keys" },
-  3: { id: "groq", name: "Groq (rápido e gratuito)", base: "https://api.groq.com/openai/v1", model: "deepseek-r1-distill-llama-70b", url: "https://console.groq.com/keys" },
-  4: { id: "ollama", name: "Ollama local (sem chave)", base: "http://127.0.0.1:11434/v1", model: "deepseek-r1:8b", url: "https://ollama.com" },
-  5: { id: "local", name: "Inferência própria (vLLM/TGI)", base: "http://127.0.0.1:8080/v1", model: "keew-local", url: "docs/OWN-MODEL.md" },
-};
-
 console.log(`
   ╭──────────────────────────────────────────────╮
   │  KEEW IA · setup                             │
@@ -26,59 +21,91 @@ console.log(`
   ╰──────────────────────────────────────────────╯
 `);
 
-for (const [k, p] of Object.entries(PROVIDERS)) console.log(`  ${k}) ${p.name}`);
+/* ── motor de raciocínio ──────────────────────────────────────────────────── */
 
-const choice = (await rl.question("\n  Provedor [1]: ")).trim() || "1";
-const provider = PROVIDERS[choice] || PROVIDERS["1"];
+console.log("  O motor padrão da Keew já está configurado.\n");
+console.log("  Pressione Enter para usar o padrão, ou informe outra base URL");
+console.log("  caso você rode o motor na sua própria infraestrutura (GPU própria).\n");
 
+const baseUrl =
+  (await rl.question("  Base URL do motor [https://api.deepseek.com/v1]: ")).trim() ||
+  "https://api.deepseek.com/v1";
+
+const model =
+  (await rl.question("  Modelo do motor [deepseek-reasoner]: ")).trim() || "deepseek-reasoner";
+
+const isLocal = /localhost|127\.0\.0\.1|0\.0\.0\.0/.test(baseUrl);
 let apiKey = "";
-if (provider.id !== "ollama" && provider.id !== "local") {
-  console.log(`\n  Obtenha a chave em: ${provider.url}`);
-  apiKey = (await rl.question("  Cole a API key: ")).trim();
+if (!isLocal) {
+  console.log("\n  Informe a chave do motor. Ela fica só no servidor — nunca vai ao navegador.");
+  apiKey = (await rl.question("  Chave do motor: ")).trim();
 }
 
+/* ── identidade e agendador ───────────────────────────────────────────────── */
+
+const accessKey = randomBytes(24).toString("hex");
 const cronSecret = randomBytes(24).toString("hex");
-const appUrl = (await rl.question("\n  URL pública do app [https://keew-ia.vercel.app]: ")).trim()
-  || "https://keew-ia.vercel.app";
+const appUrl =
+  (await rl.question("\n  URL pública do app [https://keew-ia.vercel.app]: ")).trim() ||
+  "https://keew-ia.vercel.app";
+
+/* ── escreve o .env.local ─────────────────────────────────────────────────── */
+
+const existing = existsSync(ENV) ? readFileSync(ENV, "utf8") : "";
+if (existing) {
+  const backup = `${ENV}.bak`;
+  writeFileSync(backup, existing, "utf8");
+  console.log(`\n  · ${ENV} anterior salvo em ${backup}`);
+}
 
 const env = `# Keew IA — gerado por scripts/setup.mjs em ${new Date().toISOString()}
-KEEW_MODEL_PROVIDER=${provider.id}
-KEEW_MODEL_BASE_URL=${provider.base}
-KEEW_MODEL_NAME=${provider.model}
+
+# Motor de raciocínio (servidor). A Keew expõe um único modelo público: keew-1.
+KEEW_MODEL_BASE_URL=${baseUrl}
+KEEW_MODEL_NAME=${model}
 KEEW_MODEL_API_KEY=${apiKey}
+
+# Chave da API própria (/api/v1) e do workspace.
+KEEW_ACCESS_KEY=${accessKey}
+
+# Agendador 24/7.
 KEEW_CRON_SECRET=${cronSecret}
 NEXT_PUBLIC_APP_URL=${appUrl}
 
-# Supabase (opcional — memória na nuvem e sincronização multi-dispositivo)
+# Memória na nuvem (opcional).
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
-
-# Chave de acesso do workspace (deixe vazio para acesso livre)
-KEEW_ACCESS_KEY=
 `;
 
 writeFileSync(ENV, env, "utf8");
 console.log(`\n  ✓ ${ENV} criado`);
+console.log(`  ✓ chave da API da Keew: ${accessKey.slice(0, 8)}…  (completa no arquivo)`);
 
-// quick gateway probe
-if (apiKey) {
-  process.stdout.write("  · testando o provedor… ");
+/* ── confere o motor ──────────────────────────────────────────────────────── */
+
+if (apiKey || isLocal) {
+  process.stdout.write("  · testando o motor da Keew… ");
   try {
-    const res = await fetch(`${provider.base}/chat/completions`, {
+    const res = await fetch(`${baseUrl.replace(/\/$/, "")}/chat/completions`, {
       method: "POST",
-      headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` },
+      headers: {
+        "content-type": "application/json",
+        ...(apiKey ? { authorization: `Bearer ${apiKey}` } : {}),
+      },
       body: JSON.stringify({
-        model: provider.model,
+        model,
         messages: [{ role: "user", content: "ok" }],
         max_tokens: 5,
         stream: false,
       }),
     });
-    console.log(res.ok ? "conexão ok ✓" : `falhou (HTTP ${res.status}) — confira a chave`);
+    console.log(res.ok ? "motor respondendo ✓" : `falhou (HTTP ${res.status}) — confira a chave`);
   } catch (err) {
-    console.log(`sem resposta (${err.message}) — rode novamente quando estiver online`);
+    console.log(`sem resposta (${err.message}) — rode de novo quando estiver online`);
   }
+} else {
+  console.log("  · sem chave: a Keew sobe com o núcleo determinístico (cálculos, datas, resumos)");
 }
 
 console.log(`
@@ -86,12 +113,10 @@ console.log(`
 
     npm run dev            → abra http://localhost:3000
     npm test               → testes do núcleo local
-    vercel --prod          → publique com cron 24/7 (vercel.json)
+    vercel --prod          → publique com agenda 24/7 (vercel.json)
 
-  Supabase (opcional, para memória na nuvem):
-    1. crie um projeto em https://supabase.com
-    2. rode supabase/schema.sql no SQL Editor
-    3. preencha as três variáveis SUPABASE_* / NEXT_PUBLIC_SUPABASE_* no .env.local
+  A API da Keew fica em /api/v1  ·  modelo público: keew-1
+  Use a chave KEEW_ACCESS_KEY no header  x-keew-key  para chamar de fora.
 `);
 
 rl.close();

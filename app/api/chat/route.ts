@@ -5,8 +5,8 @@
  *
  *   1. Local Reasoning Core (KRL) — deterministic skills answer instantly.
  *   2. Retrieval — knowledge base + built-in corpus ground the prompt.
- *   3. LLM streaming — DeepSeek/OpenRouter/Gemini/… streamed as SSE.
- *   4. Resilience — if the provider fails mid-flight, the local core takes
+ *   3. Keew engine — streamed as SSE.
+ *   4. Resilience — if the engine fails mid-flight, the local core takes
  *      over so the assistant never goes dark (24/7 requirement).
  *
  * Response is always SSE with normalized frames (see lib/provider.ts).
@@ -16,7 +16,7 @@ import type { NextRequest } from "next/server";
 import { APP_VERSION, clientIp, guard, rateLimit } from "@/lib/api-utils";
 import { KEEW_CORPUS, buildIndex, search, toContext } from "@/lib/knowledge";
 import { reason } from "@/lib/local-engine";
-import { isConfigured, resolveConfig, streamChat, type GatewayConfig, type StreamFrame } from "@/lib/provider";
+import { isConfigured, resolveConfig, streamChat, type StreamFrame } from "@/lib/provider";
 import type { ChatMessage, KnowledgeDoc } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -28,11 +28,9 @@ type Body = {
   system?: string;
   agentId?: string;
   temperature?: number;
-  model?: string;
-  client?: Partial<GatewayConfig>;
   knowledge?: KnowledgeDoc[];
-  /** "auto" tries the model first, "local" forces the KRL, "model" forces the LLM */
-  mode?: "auto" | "local" | "model";
+  /** "local" força o núcleo determinístico; "auto" deixa a Keew decidir */
+  mode?: "auto" | "local";
   think?: boolean;
 };
 
@@ -63,7 +61,7 @@ export async function POST(req: NextRequest) {
     return new Response(JSON.stringify({ ok: false, error: "Mensagem ausente" }), { status: 400 });
   }
 
-  const config = resolveConfig({ ...body.client, model: body.model || body.client?.model });
+  const config = resolveConfig();
   const ready = isConfigured(config);
   const mode = body.mode || "auto";
 
@@ -76,8 +74,8 @@ export async function POST(req: NextRequest) {
       const emit = (f: StreamFrame) => controller.enqueue(new TextEncoder().encode(enc(f)));
       const emitPrompt = (f: StreamFrame) => controller.enqueue(new TextEncoder().encode(enc(f)));
 
-      // deterministic skill answered with full confidence → no model needed
-      if (mode !== "model" && local.terminal && local.confidence >= 0.8) {
+      // skill determinística resolvida com confiança alta → sem chamada externa
+      if (local.terminal && local.confidence >= 0.8) {
         emitPrompt({ t: "reasoning", v: `**Núcleo local · ${local.skill}**\n\n${local.reasoning || ""}\n\n` });
         // stream the answer in readable chunks so the UI behaves like any reply
         const chunks = chunk(local.answer, 42);
@@ -93,12 +91,6 @@ export async function POST(req: NextRequest) {
 
       if (mode === "local" || !ready) {
         emitPrompt({ t: "reasoning", v: `**Núcleo local · ${local.skill}**\n\n${local.reasoning || ""}\n\n` });
-        if (!ready) {
-          emitPrompt({
-            t: "reasoning",
-            v: "Nenhum provedor configurado: rode **Configurações → Modelo** para ativar o modelo grande. Enquanto isso sigo com o núcleo próprio.\n\n",
-          });
-        }
         for (const c of chunk(local.answer, 42)) {
           emit({ t: "text", v: c });
           await sleep(8);
@@ -116,17 +108,16 @@ export async function POST(req: NextRequest) {
       emitPrompt({
         t: "reasoning",
         v:
-          `**Keew IA · ${config.kind === "deepseek" ? "DeepSeek R1" : config.model}**\n\n` +
-          `- Rota: ${config.kind} · \`${config.model}\`\n` +
+          `**Keew · raciocínio**\n\n` +
           `- Contexto recuperado: ${hits.length} documento(s)\n` +
           `- Núcleo local: ${local.skill} (confiança ${(local.confidence * 100).toFixed(0)}%)\n\n`,
       });
 
       const system = buildSystem(body.system, context, local);
 
-      // ── 3 · stream the model ───────────────────────────────────────────
+      // ── 3 · raciocínio profundo ───────────────────────────────────────────
       let produced = "";
-      let providerFailed = false;
+      let engineFailed = false;
       try {
         const upstream = streamChat({
           messages: messages.slice(-24),
@@ -149,7 +140,7 @@ export async function POST(req: NextRequest) {
             let frame: StreamFrame;
             try { frame = JSON.parse(line.slice(5).trim()); } catch { continue; }
             if (frame.t === "error") {
-              providerFailed = true;
+              engineFailed = true;
               emit({ t: "reasoning", v: `\n> ⚠️ ${frame.v}\n\n` });
               continue;
             }
@@ -158,23 +149,23 @@ export async function POST(req: NextRequest) {
           }
         }
       } catch (err) {
-        providerFailed = true;
+        engineFailed = true;
         emit({ t: "reasoning", v: `\n> ⚠️ ${(err as Error).message}\n\n` });
       }
 
       // ── 4 · resilience: never leave the user with nothing ──────────────
-      if (providerFailed && !produced.trim()) {
+      if (engineFailed && !produced.trim()) {
         emit({
           t: "reasoning",
-          v: "Provedor indisponível — acionando o núcleo local para não interromper o atendimento.\n\n",
+          v: "",
         });
         const rescue = reason(last.content, localDocs);
         for (const c of chunk(rescue.answer, 42)) {
           emit({ t: "text", v: c });
           await sleep(6);
         }
-      } else if (providerFailed) {
-        emit({ t: "text", v: "\n\n> A conexão com o provedor oscilou. Resposta parcial acima — o núcleo local está disponível como reserva." });
+      } else if (engineFailed) {
+        emit({ t: "text", v: "\n\n> A conexão oscilou no meio da resposta. O que está acima foi entregue; o núcleo próprio continua disponível." });
       }
 
       emit({ t: "done" });

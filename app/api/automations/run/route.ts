@@ -1,14 +1,13 @@
 /**
  * GET|POST /api/automations/run
  * ═════════════════════════════════════════════════════════════════════════
- * The 24/7 plane. Invoked by Vercel Cron (every 10 min, see vercel.json) and
- * by GitHub Actions as a redundant scheduler.
+ * O plano 24/7. Invocado pelo Vercel Cron (diário, ver vercel.json) e pelo
+ * GitHub Actions a cada 10 minutos como agendador principal.
  *
  * Responsibilities
- *   1. Keep the serverless functions warm and prove the gateway is alive.
- *   2. Execute the due automations stored in Supabase (or the local file store
- *      in dev), recording status + a short result summary.
- *   3. Never fail loudly: a broken automation must not break the heartbeat.
+ *   1. Mantém as funções aquecidas e prova que a Keew está no ar.
+ *   2. Executa as automações vencidas do Supabase, registrando status e resultado.
+ *   3. Nunca falha alto: uma automação quebrada não derruba o heartbeat.
  */
 import type { NextRequest } from "next/server";
 

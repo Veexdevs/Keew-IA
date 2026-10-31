@@ -45,10 +45,6 @@ export function CommandPalette() {
         icon: <Palette className="size-3.5" />, run: () => { openSettings("aparencia"); setCommandOpen(false); },
       },
       {
-        id: "model", label: "Configurar modelo / provedor", group: "Ações",
-        icon: <Zap className="size-3.5" />, run: () => { openSettings("modelo"); setCommandOpen(false); },
-      },
-      {
         id: "knowledge", label: "Base de conhecimento", group: "Ações",
         icon: <BookOpen className="size-3.5" />, run: () => { openSettings("conhecimento"); setCommandOpen(false); },
       },

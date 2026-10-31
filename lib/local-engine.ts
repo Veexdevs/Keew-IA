@@ -2,7 +2,7 @@
  * Keew IA — Núcleo de Raciocínio Local (KRL)
  * ═════════════════════════════════════════════════════════════════════════════
  * A camada de IA que a Keew executa com recursos próprios, sem depender de
- * nenhum provedor externo: análise simbólica, matemática de precisão,
+ * sem depender de nada externo: análise simbólica, matemática de precisão,
  * conversão de unidades, raciocínio temporal, sumarização extrativa,
  * transformações de texto e recuperação sobre a base de conhecimento.
  *
@@ -592,10 +592,9 @@ export function trySocial(text: string): EngineResult | null {
       reasoning: "Saudação reconhecida — resposta curta do núcleo local.",
       answer:
         "Oi. Keew IA aqui — núcleo local ativo.\n\n" +
-        "Posso resolver agora, sem depender de nenhuma API: **cálculos**, **conversões de unidade**, " +
-        "**datas e prazos**, **resumos**, **JSON/base64/slug** e **busca na base de conhecimento**. " +
-        "Para conversa aberta e código, configure um provedor em **Configurações → Modelo** (DeepSeek R1 é o padrão) " +
-        "ou rode `ollama run deepseek-r1:8b` na sua máquina.\n\n" +
+        "Resolvo na hora **cálculos**, **conversões de unidade**, **datas e prazos**, **resumos**, " +
+        "**JSON/base64/slug** e **busca na base de conhecimento** — e para conversa aberta eu penso com o " +
+        "Keew Reason.\n\n" +
         "O que você precisa?",
     };
   }
@@ -611,11 +610,11 @@ export function trySocial(text: string): EngineResult | null {
       answer:
         "Sou a **Keew IA** — a inteligência artificial própria da Veexdevs.\n\n" +
         "| | |\n| --- | --- |\n" +
-        "| Núcleo | Raciocínio local determinístico (math, datas, unidades, resumo, conhecimento) |\n" +
-        "| Modelo | DeepSeek R1 e derivados via gateway próprio (ou Ollama/vLLM na sua máquina) |\n" +
+        "| Núcleo | Keew Core — raciocínio determinístico (math, datas, unidades, resumo, conhecimento) |\n" +
+        "| Razão | Keew Reason — raciocínio profundo para conversa aberta, código e análise |\n" +
         "| Plataformas | Web, PWA, APK Android, IPA iOS, EXE/DMG/AppImage |\n" +
         "| Agentes | Core, Engenheiro, Analista, Redator, Pesquisador, Tutor + os seus |\n" +
-        "| Automação | cron 24/7 na Vercel + GitHub Actions |\n\n" +
+        "| Automação | 24/7, sem precisar de você |\n\n" +
         "Tudo isso num workspace com 14 temas. O que vamos resolver?",
     };
   }
@@ -628,7 +627,7 @@ export function trySocial(text: string): EngineResult | null {
       skill: "social",
       terminal: true,
       confidence: 0.9,
-      reasoning: "Mapeei as habilidades disponíveis agora (núcleo local) e as que exigem provedor.",
+      reasoning: "Mapeei as habilidades do núcleo determinístico e as que o Keew Reason completa.",
       answer:
         "Trabalho em dois níveis — e o primeiro não precisa de internet.\n\n" +
         "**Agora, só com o núcleo local**\n\n" +
@@ -640,8 +639,8 @@ export function trySocial(text: string): EngineResult | null {
         "| cole um texto e escreva `resuma` | resumo extrativo com palavras-chave |\n" +
         "| `slug de Café com Leite` · `codifique em base64: keew` · `valide este json` | transformação de texto |\n" +
         "| `quem é a Keew IA` · dúvidas sobre seus documentos | base de conhecimento |\n\n" +
-        "**Com um provedor conectado** (Configurações → Modelo): conversa aberta, código de produção, " +
-        "redação, análise de dados e o raciocínio longo do DeepSeek R1.\n\n" +
+        "**Sempre, com o Keew Reason**: conversa aberta, código de produção, redação, análise de dados " +
+        "e raciocínio longo passo a passo.\n\n" +
         "Atalhos: `⌘K` comandos · `⌘J` nova conversa · `⌘\\` alternar menu.",
     };
   }
@@ -676,7 +675,7 @@ export function tryList(text: string): EngineResult | null {
     answer:
       `### ${count} caminhos para "${topic}"\n\n` +
       angles.slice(0, count).map((a, i) => `${i + 1}. **${a.split(" — ")[0].replace(/^./, (c) => c.toUpperCase())}** — ${a.split(" — ")[1]}.`).join("\n") +
-      "\n\nQuer que eu aprofunde um deles com exemplos concretos? Com um provedor configurado eu detalho cada item.",
+      "\n\nQuer que eu aprofunde um deles com exemplos concretos?",
   };
 }
 
@@ -689,14 +688,11 @@ export function fallback(query: string): EngineResult {
     skill: "fallback",
     terminal: false,
     confidence: 0.2,
-    reasoning: "Nenhuma habilidade determinística cobriu o pedido com confiança suficiente; vou encaminhar ao modelo de linguagem.",
+    reasoning: "Nenhuma habilidade determinística cobriu o pedido; o Keew Reason assume a resposta.",
     answer:
-      `Ainda não consigo responder **"${topic}"** com o núcleo local sozinho — esse tipo de pergunta depende do modelo de linguagem grande.\n\n` +
-      `**Como ativar em 60 segundos**\n\n` +
-      `1. Abra **Configurações → Modelo**.\n` +
-      `2. Escolha o provedor (DeepSeek R1 é o padrão da Keew) e cole a chave de API.\n` +
-      `3. Salve — a partir daí toda mensagem usa o modelo, e o núcleo local continua respondendo como reserva se a rede cair.\n\n` +
-      `Se preferir rodar **sem chave nenhuma**, rode o modelo em casa com Ollama (\`ollama run deepseek-r1:8b\`) e aponte o provedor para \`http://127.0.0.1:11434/v1\`.`,
+      `Sobre **"${topic}"**: é uma pergunta de raciocínio aberto, então quem responde é o Keew Reason.\n\n` +
+      `Se a resposta não vier completa, tente de novo. E se for sobre um documento seu, anexe o arquivo ou ` +
+      `adicione na base de conhecimento para eu responder com o contexto certo.`,
   };
 }
 

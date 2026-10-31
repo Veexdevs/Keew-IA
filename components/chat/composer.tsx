@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
-  ArrowUp, ChevronDown, Cpu, FileText, Globe, Image as ImageIcon, Loader2, Paperclip, Square, Wand2, X,
+  ArrowUp, ChevronDown, FileText, Image as ImageIcon, Loader2, Paperclip, Square, Wand2, X,
 } from "lucide-react";
 
 import { useStore } from "@/lib/store";
@@ -13,13 +13,12 @@ const TEXT_MIME = /^text\/|json|javascript|typescript|xml|yaml|csv|markdown/;
 
 export function Composer() {
   const {
-    send, stop, busy, agents, provider, settings, currentChatId, chats,
-    setProvider, openSettings, pushToast,
+    send, stop, busy, agents, settings, currentChatId, chats,
+    openSettings, pushToast,
   } = useStore();
 
   const [value, setValue] = useState("");
   const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const [mode, setMode] = useState<"auto" | "local" | "model">("auto");
   const [agentMenu, setAgentMenu] = useState(false);
   const [busyFiles, setBusyFiles] = useState(false);
   const taRef = useRef<HTMLTextAreaElement>(null);
@@ -95,8 +94,6 @@ export function Composer() {
     }
   };
 
-  const modelLabel = provider.model || (provider.kind === "deepseek" ? "DeepSeek R1" : provider.kind);
-
   return (
     <div className="w-full">
       <input
@@ -141,11 +138,7 @@ export function Composer() {
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={onKeyDown}
           rows={1}
-          placeholder={
-            mode === "local"
-              ? "Pergunte ao núcleo local — matemática, datas, conversões, resumos…"
-              : "Pergunte, cole código, anexe um arquivo…"
-          }
+          placeholder="Pergunte, cole código, anexe um arquivo…"
           className="block max-h-[220px] w-full resize-none bg-transparent px-3.5 pb-1 pt-3 text-[13.5px] leading-[1.6] text-fg placeholder:text-subtle focus:outline-none"
         />
 
@@ -209,30 +202,14 @@ export function Composer() {
             )}
           </div>
 
-          {/* mode switch */}
-          <button
-            onClick={() => setMode(mode === "auto" ? "local" : mode === "local" ? "model" : "auto")}
-            className={`flex items-center gap-1.5 rounded-[var(--r-sm)] px-1.5 py-1 text-[11px] font-medium transition-colors hover:bg-elev ${
-              mode === "local" ? "text-amber-400" : mode === "model" ? "text-accent" : "text-muted hover:text-fg"
-            }`}
-            title="Modo de inferência: automático → núcleo local → modelo grande"
+          {/* identidade: a Keew responde, sem escolha de modelo */}
+          <span
+            className="flex items-center gap-1.5 rounded-[var(--r-sm)] px-1.5 py-1 text-[11px] font-medium text-muted"
+            title="A Keew escolhe sozinha entre o núcleo próprio e o raciocínio profundo"
           >
-            {mode === "local" ? <Cpu className="size-3.5" /> : mode === "model" ? <Globe className="size-3.5" /> : <Wand2 className="size-3.5" />}
-            <span className="hidden sm:inline">
-              {mode === "local" ? "Núcleo local" : mode === "model" ? "Modelo" : "Auto"}
-            </span>
-          </button>
-
-          <div className="mx-1 h-4 w-px bg-line" />
-
-          <button
-            onClick={() => openSettings("modelo")}
-            className="flex max-w-[180px] items-center gap-1.5 rounded-[var(--r-sm)] px-1.5 py-1 font-mono text-[10.5px] text-subtle transition-colors hover:bg-elev hover:text-fg"
-            title="Configurar modelo"
-          >
-            <span className={`size-1.5 shrink-0 rounded-full ${provider.apiKey ? "bg-emerald-500" : "bg-amber-500"}`} />
-            <span className="truncate">{modelLabel}</span>
-          </button>
+            <Wand2 className="size-3.5 text-accent" />
+            <span className="hidden sm:inline">Keew 1</span>
+          </span>
 
           <div className="ml-auto flex items-center gap-1">
             <span className="hidden pr-1 font-mono text-[9.5px] text-subtle md:inline">
@@ -262,9 +239,7 @@ export function Composer() {
 
       <p className="mt-1.5 text-center text-[9.5px] leading-relaxed text-subtle">
         Keew IA pode cometer erros — confira informações críticas.{" "}
-        <span className="text-muted">
-          {mode === "local" ? "Núcleo próprio ativo, sem chamadas externas." : "Processado pelo gateway Keew."}
-        </span>
+        <span className="text-muted">Raciocínio próprio da Keew.</span>
       </p>
     </div>
   );

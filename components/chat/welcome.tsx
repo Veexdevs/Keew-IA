@@ -81,9 +81,14 @@ export function Welcome() {
           className="absolute size-24 rounded-full blur-2xl"
           style={{ background: "radial-gradient(circle, rgb(var(--glow) / 0.28), transparent 70%)" }}
         />
-        <div className="relative grid size-14 place-items-center rounded-[16px] border border-accent-line bg-accent/10">
-          <span className="absolute inset-0 rounded-[16px] ring-1 ring-inset ring-white/5" />
-          <Mark size={26} className="text-accent" />
+        <div
+          className="relative grid size-14 place-items-center bg-accent text-accent-fg"
+          style={{
+            borderRadius: 16,
+            boxShadow: "0 8px 28px -8px rgb(var(--glow) / 0.85)",
+          }}
+        >
+          <Mark size={30} />
         </div>
       </div>
 
@@ -91,8 +96,7 @@ export function Welcome() {
         {greeting}{name}.
       </h1>
       <p className="anim-rise delay-2 mt-1.5 max-w-md text-center text-[12.5px] leading-relaxed text-muted">
-        Sou a <span className="font-medium text-fg">Keew IA</span> — raciocínio próprio no local, modelos de ponta
-        quando há rede. Agente ativo:{" "}
+        Sou a <span className="font-medium text-fg">Keew IA</span> — raciocínio próprio, sempre online. Agente ativo:{" "}
         <button onClick={() => openSettings("agentes")} className="font-medium text-accent hover:underline">
           {agent?.name}
         </button>
@@ -102,8 +106,8 @@ export function Welcome() {
       {/* capability strip */}
       <div className="anim-rise delay-2 mt-4 flex flex-wrap items-center justify-center gap-1.5">
         {[
-          { label: "Núcleo local", tone: "text-emerald-400 border-emerald-500/25 bg-emerald-500/8" },
-          { label: "DeepSeek R1", tone: "text-accent border-accent-line bg-accent/8" },
+          { label: "Raciocínio próprio", tone: "text-accent border-accent-line bg-accent/8" },
+          { label: "Memória", tone: "text-emerald-400 border-emerald-500/25 bg-emerald-500/8" },
           { label: "Agentes", tone: "text-fuchsia-400 border-fuchsia-500/25 bg-fuchsia-500/8" },
           { label: "14 temas", tone: "text-amber-400 border-amber-500/25 bg-amber-500/8" },
         ].map((c) => (

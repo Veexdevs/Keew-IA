@@ -11,7 +11,7 @@ import { THEME_MAP, type ThemeId } from "@/lib/themes";
 
 export function ContextPanel() {
   const {
-    contextOpen, setContextOpen, chats, currentChatId, agents, usage, provider,
+    contextOpen, setContextOpen, chats, currentChatId, agents, usage,
     knowledge, settings, openSettings, automations,
   } = useStore();
 
@@ -76,29 +76,17 @@ export function ContextPanel() {
           </button>
         </section>
 
-        {/* model */}
+        {/* engine — a Keew é a única, não há provedor para escolher */}
         <section className="rounded-[var(--r-lg)] border border-line bg-elev/40 p-3">
           <div className="mb-2 flex items-center gap-1.5 text-[9.5px] font-semibold uppercase tracking-[0.14em] text-subtle">
-            <Cpu className="size-3" /> Inferência
+            <Cpu className="size-3" /> Inteligência
           </div>
           <dl className="space-y-1.5 text-[11px]">
-            <Row k="Provedor" v={provider.kind} />
-            <Row k="Modelo" v={provider.model || (provider.kind === "deepseek" ? "deepseek-reasoner" : "padrão")} mono />
-            <Row
-              k="Chave"
-              v={provider.apiKey ? "configurada no navegador" : "env do servidor / local"}
-              tone={provider.apiKey ? "ok" : "warn"}
-            />
+            <Row k="Modelo" v="Keew 1" />
+            <Row k="Raciocínio" v="próprio" tone="ok" />
+            <Row k="Disponibilidade" v="24/7" tone="ok" />
             <Row k="Tema" v={theme.name} />
-            <Row k="Núcleo local" v="ativo" tone="ok" />
           </dl>
-          <button
-            onClick={() => openSettings("modelo")}
-            className="mt-2.5 flex w-full items-center justify-between rounded-[var(--r-sm)] border border-line px-2 py-1.5 text-[10.5px] text-muted transition-colors hover:border-accent-line hover:text-fg"
-          >
-            Configurar provedor
-            <ChevronRight className="size-3" />
-          </button>
         </section>
 
         {/* conversation metrics */}
