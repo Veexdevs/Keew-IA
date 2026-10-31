@@ -1,0 +1,52 @@
+# Keew IA — 24/7 plane.
+#
+# This is the PRIMARY scheduler. Vercel's Hobby plan only allows one cron run
+# per day, so this workflow does the 10-minute heartbeat and executes any due
+# automations; Vercel keeps a daily safety net.
+#
+# Setup (once):
+#   Settings → Secrets and variables → Actions
+#     KEEW_BASE_URL      → https://keew-ia.vercel.app  (or your domain)
+#     KEEW_CRON_SECRET   → same value as the Vercel env var (optional but recommended)
+name: keew-keep-alive
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: keew-keep-alive
+  cancel-in-progress: false
+
+jobs:
+  heartbeat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Resolve base URL
+        id: cfg
+        run: |
+          BASE="${{ secrets.KEEW_BASE_URL }}"
+          if [ -z "$BASE" ]; then BASE="https://keew-ia.vercel.app"; fi
+          echo "base=$BASE" >> "$GITHUB_OUTPUT"
+
+      - name: Health check
+        run: |
+          set -euo pipefail
+          BASE="${{ steps.cfg.outputs.base }}"
+          for i in 1 2 3; do
+            code=$(curl -s -o /tmp/health.json -w '%{http_code}' --max-time 25 "$BASE/api/health" || true)
+            echo "attempt $i → HTTP $code"
+            if [ "$code" = "200" ]; then cat /tmp/health.json; exit 0; fi
+            sleep 20
+          done
+          echo "health check failed"; exit 1
+
+      - name: Run due automations
+        run: |
+          BASE="${{ steps.cfg.outputs.base }}"
+          SECRET="${{ secrets.KEEW_CRON_SECRET }}"
+          curl -sS --max-time 55 -X POST "$BASE/api/automations/run" \
+            -H "content-type: application/json" \
+            ${SECRET:+-H "authorization: Bearer $SECRET"} | head -c 4000 || true

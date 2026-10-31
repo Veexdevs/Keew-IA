@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keew AI - Professional Workspace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        keew: {
+                            black: '#000000',
+                            surface: '#080808',
+                            border: '#161616',
+                            hover: '#1c1c1c',
+                            accent: '#2563eb',
+                            bright: '#3b82f6'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #000000; color: #ededed; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #000000; }
+        ::-webkit-scrollbar-thumb { background: #1a1a1a; border-radius: 2px; }
+        ::-webkit-scrollbar-thumb:hover { background: #2563eb; }
+    </style>
+</head>
+<body class="bg-black text-neutral-200 h-screen flex overflow-hidden selection:bg-blue-600 selection:text-white">
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-64 bg-[#050505] border-r border-[#161616] flex flex-col transition-transform duration-300 z-25 md:relative absolute inset-y-0 left-0 -translate-x-full md:translate-x-0">
+        <!-- Logo Header -->
+        <div class="p-4 border-b border-[#161616] flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-sm shadow-blue-900/30">
+                    <i data-lucide="cpu" class="w-4 h-4"></i>
+                </div>
+                <div>
+                    <h1 class="font-semibold text-xs tracking-wide text-white uppercase">Keew AI</h1>
+                    <span class="text-[9px] text-neutral-500 font-mono tracking-tight flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> v3.0 Workspace</span>
+                </div>
+            </div>
+            <button onclick="toggleSidebar()" class="md:hidden text-neutral-400 hover:text-white p-1">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <!-- New Chat Button -->
+        <div class="p-3">
+            <button onclick="createNewChat()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2 px-3 rounded-lg flex items-center justify-center space-x-2 transition-all text-xs shadow-sm shadow-blue-900/20 active:scale-[0.98]">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                <span>Novo Chat</span>
+            </button>
+        </div>
+
+        <!-- Chat History List -->
+        <div class="flex-1 overflow-y-auto px-2 space-y-1">
+            <div class="text-[9px] font-mono font-semibold text-neutral-600 uppercase px-2 py-1 tracking-wider">Histórico</div>
+            <div id="history-list" class="space-y-0.5">
+                <!-- Injetado via JS -->
+            </div>
+        </div>
+
+        <!-- Footer Workspace Profile -->
+        <div class="p-3 border-t border-[#161616] flex items-center justify-between bg-black/40">
+            <div class="flex items-center space-x-2.5">
+                <div class="w-7 h-7 rounded-lg bg-[#0f0f0f] border border-[#1f1f1f] flex items-center justify-center text-neutral-300 text-xs font-medium">
+                    <i data-lucide="shield" class="w-3.5 h-3.5 text-blue-500"></i>
+                </div>
+                <div class="truncate">
+                    <p class="text-xs font-medium text-neutral-200">Workspace</p>
+                    <p class="text-[9px] font-mono text-neutral-500">Secure Client</p>
+                </div>
+            </div>
+            <button onclick="openSettings()" class="text-neutral-400 hover:text-white p-1.5 rounded-md hover:bg-[#161616] transition-colors" title="Configurações">
+                <i data-lucide="settings" class="w-3.5 h-3.5"></i>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Chat Area -->
+    <main class="flex-1 flex flex-col h-full bg-black relative">
+        <!-- Top Navbar -->
+        <header class="h-14 border-b border-[#161616] flex items-center justify-between px-4 bg-black/95 backdrop-blur z-10">
+            <div class="flex items-center space-x-3">
+                <button onclick="toggleSidebar()" class="md:hidden text-neutral-300 hover:text-white p-1">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="message-square" class="w-4 h-4 text-blue-500 hidden sm:inline"></i>
+                    <h2 id="current-chat-title" class="text-xs font-medium text-neutral-200 tracking-wide">Nova Conversa</h2>
+                </div>
+            </div>
+            <div class="flex items-center space-x-1">
+                <!-- Lixeira superior removida -->
+            </div>
+        </header>
+
+        <!-- Messages Viewport -->
+        <div id="chat-container" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
+            <!-- Welcome Screen -->
+            <div id="welcome-screen" class="h-full flex flex-col items-center justify-center text-center max-w-lg mx-auto space-y-6 py-12">
+                <div class="w-12 h-12 rounded-xl bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-blue-500 shadow-lg shadow-blue-950/50">
+                    <i data-lucide="sparkles" class="w-6 h-6"></i>
+                </div>
+                <div class="space-y-1">
+                    <h3 class="text-base font-semibold text-white tracking-tight">Keew AI Enterprise</h3>
+                    <p class="text-xs text-neutral-400 max-w-sm">Pronto para processar consultas avançadas de engenharia, programação e redação técnica.</p>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full pt-2">
+                    <button onclick="sendPreset('Elabore um relatório técnico executivo')" class="p-3 bg-[#050505] hover:bg-[#0c0c0c] border border-[#161616] hover:border-blue-600/50 rounded-xl text-left text-xs text-neutral-300 transition-all flex items-center gap-2.5 group">
+                        <i data-lucide="file-text" class="w-4 h-4 text-blue-500 group-hover:scale-110 transition-transform"></i>
+                        <span>Relatório Técnico</span>
+                    </button>
+                    <button onclick="sendPreset('Crie um script em JavaScript robusto e limpo')" class="p-3 bg-[#050505] hover:bg-[#0c0c0c] border border-[#161616] hover:border-blue-600/50 rounded-xl text-left text-xs text-neutral-300 transition-all flex items-center gap-2.5 group">
+                        <i data-lucide="code" class="w-4 h-4 text-blue-500 group-hover:scale-110 transition-transform"></i>
+                        <span>Código JavaScript</span>
+                    </button>
+                    <button onclick="sendPreset('Otimize este fluxo de trabalho profissional')" class="p-3 bg-[#050505] hover:bg-[#0c0c0c] border border-[#161616] hover:border-blue-600/50 rounded-xl text-left text-xs text-neutral-300 transition-all flex items-center gap-2.5 group">
+                        <i data-lucide="cpu" class="w-4 h-4 text-blue-500 group-hover:scale-110 transition-transform"></i>
+                        <span>Otimizar Fluxo</span>
+                    </button>
+                    <button onclick="sendPreset('Explique um conceito arquitetural complexo')" class="p-3 bg-[#050505] hover:bg-[#0c0c0c] border border-[#161616] hover:border-blue-600/50 rounded-xl text-left text-xs text-neutral-300 transition-all flex items-center gap-2.5 group">
+                        <i data-lucide="help-circle" class="w-4 h-4 text-blue-500 group-hover:scale-110 transition-transform"></i>
+                        <span>Arquitetura</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="messages-list" class="space-y-6 max-w-2xl mx-auto w-full"></div>
+        </div>
+
+        <!-- Input Form Area -->
+        <div class="p-4 bg-black border-t border-[#161616]">
+            <div class="max-w-2xl mx-auto">
+                <form id="chat-form" onsubmit="handleChatSubmit(event)" class="relative flex items-center bg-[#050505] border border-[#1c1c1c] focus-within:border-blue-600 rounded-xl p-2 transition-colors shadow-inner">
+                    <textarea id="user-input" rows="1" placeholder="Envie uma mensagem para a Keew AI..." 
+                        class="w-full bg-transparent text-neutral-200 placeholder-neutral-500 px-3 py-1.5 focus:outline-none resize-none max-h-32 text-xs leading-relaxed"
+                        onkeydown="handleKeyDown(event)" oninput="autoResizeTextarea(this)"></textarea>
+                    
+                    <div class="flex items-center pl-1">
+                        <button type="submit" id="send-btn" class="w-8 h-8 rounded-lg bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center transition-all disabled:opacity-50 shadow-sm shadow-blue-900/30">
+                            <i data-lucide="arrow-up" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let chats = JSON.parse(localStorage.getItem('keew_chats_pro_pure_v3')) || [
+            { id: 1, title: 'Nova Conversa', messages: [] }
+        ];
+        let currentChatId = chats[0].id;
+
+        window.onload = function() {
+            lucide.createIcons();
+            renderHistory();
+            loadCurrentChat();
+
+            // Listener global para fechar menus de edição ao clicar fora
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('#history-list')) {
+                    // Clicou fora da lista de histórico
+                }
+            });
+        };
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('-translate-x-full');
+        }
+
+        function createNewChat() {
+            const newId = Date.now();
+            const newChat = { id: newId, title: 'Nova Conversa', messages: [] };
+            chats.unshift(newChat);
+            currentChatId = newId;
+            saveChats();
+            renderHistory();
+            loadCurrentChat();
+        }
+
+        function saveChats() {
+            localStorage.setItem('keew_chats_pro_pure_v3', JSON.stringify(chats));
+        }
+
+        function renderHistory() {
+            const historyList = document.getElementById('history-list');
+            historyList.innerHTML = '';
+            
+            chats.forEach(chat => {
+                const isActive = chat.id === currentChatId;
+                const div = document.createElement('div');
+                div.className = `group relative flex items-center justify-between px-2.5 py-2 rounded-lg text-xs cursor-pointer transition-colors ${isActive ? 'bg-[#0c0c0c] text-blue-500 font-medium' : 'text-neutral-400 hover:bg-[#0a0a0a] hover:text-neutral-200'}`;
+                
+                div.innerHTML = `
+                    <div class="flex items-center space-x-2.5 truncate flex-1 pr-14" onclick="switchChat(${chat.id})">
+                        <i data-lucide="message-square" class="w-3.5 h-3.5 shrink-0"></i>
+                        <span class="truncate" id="chat-title-${chat.id}">${escapeHtml(chat.title)}</span>
+                    </div>
+                    <div class="absolute right-2 flex items-center space-x-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-300 ease-out transform translate-x-1 group-hover:translate-x-0 bg-black/90 pl-1 rounded">
+                        <button onclick="enableRename(event, ${chat.id})" class="text-neutral-500 hover:text-white p-1 transition-colors" title="Renomear">
+                            <i data-lucide="pencil" class="w-3 h-3"></i>
+                        </button>
+                        <button onclick="deleteChat(event, ${chat.id})" class="text-neutral-500 hover:text-red-400 p-1 transition-colors" title="Apagar">
+                            <i data-lucide="trash-2" class="w-3 h-3"></i>
+                        </button>
+                    </div>
+                `;
+                historyList.appendChild(div);
+            });
+            lucide.createIcons();
+        }
+
+        function enableRename(event, id) {
+            event.stopPropagation();
+            const titleSpan = document.getElementById(`chat-title-${id}`);
+            if (!titleSpan) return;
+
+            const chat = chats.find(c => c.id === id);
+            if (!chat) return;
+
+            const currentTitle = chat.title;
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = currentTitle;
+            input.className = 'bg-black text-xs text-white border border-blue-600 rounded px-1.5 py-0.5 w-full focus:outline-none';
+            
+            titleSpan.replaceWith(input);
+            input.focus();
+            input.select();
+
+            const saveNewTitle = () => {
+                const newTitle = input.value.trim();
+                if (newTitle) {
+                    chat.title = newTitle;
+                    saveChats();
+                }
+                renderHistory();
+                if (currentChatId === id) {
+                    document.getElementById('current-chat-title').textContent = chat.title;
+                }
+            };
+
+            input.addEventListener('blur', saveNewTitle);
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    saveNewTitle();
+                } else if (e.key === 'Escape') {
+                    renderHistory();
+                }
+            });
+            input.addEventListener('click', (e) => e.stopPropagation());
+        }
+
+        function switchChat(id) {
+            currentChatId = id;
+            renderHistory();
+            loadCurrentChat();
+            if (window.innerWidth < 768) toggleSidebar();
+        }
+
+        function deleteChat(event, id) {
+            event.stopPropagation();
+            if (chats.length <= 1) {
+                createNewChat();
+                return;
+            }
+            chats = chats.filter(c => c.id !== id);
+            if (currentChatId === id) currentChatId = chats[0].id;
+            saveChats();
+            renderHistory();
+            loadCurrentChat();
+        }
+
+        function clearCurrentChat() {
+            const chat = chats.find(c => c.id === currentChatId);
+            if (chat) {
+                chat.messages = [];
+                chat.title = 'Nova Conversa';
+                saveChats();
+                renderHistory();
+                loadCurrentChat();
+            }
+        }
+
+        function loadCurrentChat() {
+            const chat = chats.find(c => c.id === currentChatId);
+            const messagesList = document.getElementById('messages-list');
+            const welcomeScreen = document.getElementById('welcome-screen');
+            const titleEl = document.getElementById('current-chat-title');
+
+            if (!chat) return;
+
+            titleEl.textContent = chat.title;
+            messagesList.innerHTML = '';
+
+            if (chat.messages.length === 0) {
+                welcomeScreen.classList.remove('hidden');
+            } else {
+                welcomeScreen.classList.add('hidden');
+                chat.messages.forEach(msg => appendMessageNode(msg.role, msg.text, false));
+            }
+            scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            const container = document.getElementById('chat-container');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function autoResizeTextarea(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = (textarea.scrollHeight) + 'px';
+        }
+
+        function handleKeyDown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                document.getElementById('chat-form').requestSubmit();
+            }
+        }
+
+        function sendPreset(text) {
+            document.getElementById('user-input').value = text;
+            document.getElementById('chat-form').requestSubmit();
+        }
+
+        async function handleChatSubmit(event) {
+            event.preventDefault();
+            const inputEl = document.getElementById('user-input');
+            const text = inputEl.value.trim();
+            if (!text) return;
+
+            inputEl.value = '';
+            inputEl.style.height = 'auto';
+
+            const chat = chats.find(c => c.id === currentChatId);
+            if (chat.messages.length === 0) {
+                chat.title = text.length > 28 ? text.substring(0, 28) + '...' : text;
+                document.getElementById('current-chat-title').textContent = chat.title;
+                renderHistory();
+            }
+
+            chat.messages.push({ role: 'user', text });
+            saveChats();
+
+            document.getElementById('welcome-screen').classList.add('hidden');
+            appendMessageNode('user', text, true);
+
+            const loadingId = 'loading-' + Date.now();
+            appendLoadingNode(loadingId);
+            scrollToBottom();
+
+            try {
+                const responseText = await callGeminiAPI(chat.messages);
+                document.getElementById(loadingId).remove();
+                
+                chat.messages.push({ role: 'assistant', text: responseText });
+                saveChats();
+                appendMessageNode('assistant', responseText, true);
+            } catch (error) {
+                document.getElementById(loadingId).remove();
+                const errorMsg = 'Erro de comunicação com o servidor. Tente novamente.';
+                chat.messages.push({ role: 'assistant', text: errorMsg });
+                saveChats();
+                appendMessageNode('assistant', errorMsg, true);
+            }
+            scrollToBottom();
+        }
+
+        function appendMessageNode(role, text, animate = false) {
+            const messagesList = document.getElementById('messages-list');
+            const isUser = role === 'user';
+            
+            const div = document.createElement('div');
+            div.className = `flex items-start space-x-3 w-full ${isUser ? 'justify-end' : 'justify-start'} ${animate ? 'transition-all duration-200 opacity-0 translate-y-1' : ''}`;
+            
+            const avatar = isUser 
+                ? `<div class="w-6 h-6 rounded-md bg-[#121212] border border-[#1f1f1f] flex items-center justify-center text-neutral-300 text-[10px] order-2 shrink-0"><i data-lucide="user" class="w-3 h-3"></i></div>`
+                : `<div class="w-6 h-6 rounded-md bg-blue-600 flex items-center justify-center text-white text-[10px] shrink-0"><i data-lucide="cpu" class="w-3.5 h-3.5"></i></div>`;
+            
+            const bubbleBg = isUser 
+                ? 'bg-blue-600 text-white rounded-xl rounded-tr-none' 
+                : 'bg-[#050505] text-neutral-200 border border-[#161616] rounded-xl rounded-tl-none';
+
+            const formattedText = escapeHtml(text).replace(/\n/g, '<br>');
+
+            div.innerHTML = `
+                ${avatar}
+                <div class="max-w-[80%] md:max-w-[75%] px-4 py-3 text-xs leading-relaxed ${bubbleBg} order-1 shadow-sm">
+                    <div class="whitespace-pre-wrap">${formattedText}</div>
+                </div>
+            `;
+            
+            messagesList.appendChild(div);
+            lucide.createIcons();
+            if (animate) {
+                setTimeout(() => div.classList.remove('opacity-0', 'translate-y-1'), 10);
+            }
+        }
+
+        function appendLoadingNode(id) {
+            const messagesList = document.getElementById('messages-list');
+            const div = document.createElement('div');
+            div.id = id;
+            div.className = 'flex items-start space-x-3 w-full justify-start';
+            div.innerHTML = `
+                <div class="w-6 h-6 rounded-md bg-blue-600 flex items-center justify-center text-white text-[10px] shrink-0">
+                    <i data-lucide="cpu" class="w-3.5 h-3.5"></i>
+                </div>
+                <div class="px-4 py-3 bg-[#050505] border border-[#161616] rounded-xl rounded-tl-none flex items-center space-x-2">
+                    <div class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></div>
+                    <div class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse [animation-delay:0.2s]"></div>
+                    <div class="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse [animation-delay:0.4s]"></div>
+                    <span class="text-[11px] font-mono text-neutral-400 pl-1">Processando resposta...</span>
+                </div>
+            `;
+            messagesList.appendChild(div);
+            lucide.createIcons();
+        }
+
+        async function callGeminiAPI(messagesHistory) {
+            const systemPrompt = "Você é a Keew AI, uma assistente corporativa profissional, altamente objetiva, técnica e eficiente. Responda em português de forma clara, direta e estruturada.";
+            const contents = messagesHistory.map(m => ({
+                role: m.role === 'user' ? 'user' : 'model',
+                parts: [{ text: m.text }]
+            }));
+
+            const payload = {
+                contents: contents,
+                systemInstruction: { parts: [{ text: systemPrompt }] }
+            };
+
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+            const candidate = result.candidates?.[0];
+            if (candidate && candidate.content?.parts?.[0]?.text) {
+                return candidate.content.parts[0].text;
+            } else {
+                throw new Error("Erro na resposta");
+            }
+        }
+
+        function escapeHtml(text) {
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+
+        function openSettings() {
+            // Mensagem elegante interna sem usar alert() nativo intrusivo
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4';
+            modal.innerHTML = `
+                <div class="bg-[#080808] border border-[#1c1c1c] rounded-xl max-w-sm w-full p-6 text-center space-y-4">
+                    <div class="w-10 h-10 rounded-lg bg-blue-600/10 border border-blue-500/20 text-blue-500 mx-auto flex items-center justify-center">
+                        <i data-lucide="shield" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-semibold text-white">Keew AI Enterprise</h4>
+                        <p class="text-xs text-neutral-400 mt-1">Versão 3.0 • Ambiente Profissional Seguro</p>
+                    </div>
+                    <button onclick="this.closest('.fixed').remove()" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium py-2 rounded-lg transition-colors">
+                        Fechar
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>
