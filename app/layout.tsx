@@ -17,9 +17,9 @@ export const metadata: Metadata = {
     template: "%s · Keew IA",
   },
   description:
-    "Keew IA: workspace de inteligência artificial próprio com raciocínio local, múltiplos provedores, agentes, base de conhecimento e automação 24/7. Web, APK, IPA e EXE.",
+    "Keew IA: inteligência artificial própria com raciocínio local, agentes, base de conhecimento e automação 24/7. Web, APK, IPA e EXE.",
   applicationName: "Keew IA",
-  keywords: ["Keew IA", "inteligência artificial", "DeepSeek R1", "assistente", "workspace", "IA própria"],
+  keywords: ["Keew IA", "inteligência artificial", "IA própria", "assistente", "workspace", "agentes"],
   authors: [{ name: "Veexdevs" }],
   manifest: "/manifest.webmanifest",
   icons: {

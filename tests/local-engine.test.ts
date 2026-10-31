@@ -95,10 +95,12 @@ test("resposta sobre identidade vem do corpus nativo", () => {
   assert.match(r.answer, /inteligência artificial própria|Veexdevs/);
 });
 
-test("pedido sem cobertura cai no fallback com instrução de configuração", () => {
+test("pedido sem cobertura cai no fallback sem expor fornecedor", () => {
   const r = reason("escreva um soneto sobre entropia social", KEEW_CORPUS);
   assert.equal(r.terminal, false);
-  assert.match(r.answer, /Configurações/);
+  assert.match(r.answer, /Keew Reason/);
+  // a interface é só Keew: nenhum nome de terceiro pode aparecer na resposta
+  assert.doesNotMatch(r.answer, /deepseek|openrouter|groq|together|gemini|anthropic|ollama|openai/i);
 });
 
 test("nunca retorna vazio", () => {

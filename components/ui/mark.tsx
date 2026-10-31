@@ -41,14 +41,20 @@ export function Mark({
       role="img"
       aria-label={title}
       fill="currentColor"
-      style={{ display: "block" }}
+      // The artwork's viewBox has ~10% dead space; trim the optical margin so the
+      // mark reads at full weight inside small tiles instead of looking shrunken.
+      style={{ display: "block", overflow: "visible" }}
     >
       <path d={PATH} fillRule="evenodd" clipRule="evenodd" />
     </svg>
   );
 }
 
-/** Wordmark: mark + "Keew" + IA, used in the sidebar and auth screens. */
+/**
+ * Brand lockup: the mark always sits on a filled accent tile, so it is legible
+ * on every one of the 14 themes — including the light ones, where a bare
+ * white crescent on a pale background would vanish.
+ */
 export function Wordmark({
   size = 22,
   showVersion = false,
@@ -58,23 +64,30 @@ export function Wordmark({
   showVersion?: boolean;
   className?: string;
 }) {
+  const tile = size + 10;
   return (
     <div className={`flex items-center gap-2.5 ${className}`}>
       <span
-        className="grid place-items-center rounded-[9px] bg-accent text-accent-fg shadow-[0_2px_10px_-2px_rgb(var(--glow)/0.55)]"
-        style={{ width: size + 8, height: size + 8 }}
+        className="grid shrink-0 place-items-center bg-accent text-accent-fg"
+        style={{
+          width: tile,
+          height: tile,
+          borderRadius: Math.round(tile * 0.28),
+          boxShadow: "0 3px 14px -4px rgb(var(--glow) / 0.7)",
+        }}
       >
-        <Mark size={size - 2} title="" />
+        {/* 62% of the tile keeps the logo chunky, not floating */}
+        <Mark size={Math.round(tile * 0.62)} title="" />
       </span>
       <span className="leading-none">
         <span className="flex items-baseline gap-1.5">
-          <span className="text-[15px] font-semibold tracking-tight text-fg">Keew</span>
+          <span className="text-[15.5px] font-semibold tracking-tight text-fg">Keew</span>
           <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-accent">IA</span>
         </span>
         {showVersion && (
           <span className="mt-1 flex items-center gap-1.5 text-[9px] font-medium uppercase tracking-[0.14em] text-subtle">
             <span className="size-1 rounded-full bg-accent pulse-dot" />
-            v1.0 · online
+            própria · online
           </span>
         )}
       </span>

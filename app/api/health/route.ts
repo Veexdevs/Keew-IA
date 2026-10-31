@@ -3,6 +3,7 @@
  * Used by the workspace status chip, uptime monitors and the cron keep-warm job.
  */
 import { APP_VERSION, STARTED_AT, json } from "@/lib/api-utils";
+import { KEEW_API } from "@/lib/keew-api";
 import { isConfigured, resolveConfig } from "@/lib/provider";
 import { isSupabaseReady } from "@/lib/supabase/admin";
 
@@ -18,8 +19,8 @@ export async function GET() {
     version: APP_VERSION,
     uptimeSec: Math.round((Date.now() - STARTED_AT) / 1000),
     at: new Date().toISOString(),
-    provider: config.kind,
-    model: config.model,
+    model: KEEW_API.model,
+    engine: config.model ? "keew-reason" : "keew-core",
     configured,
     supabase: isSupabaseReady(),
     node: process.version,

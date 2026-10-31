@@ -76,17 +76,12 @@ export type Settings = {
   defaultModel: string;
 };
 
-export type ProviderKind =
-  | "openai-compatible"
-  | "deepseek"
-  | "openrouter"
-  | "ollama"
-  | "gemini"
-  | "anthropic"
-  | "openai"
-  | "groq"
-  | "together"
-  | "local";
+/**
+ * A Keew é a única inteligência exposta. Os valores herdados existem apenas
+ * para que configurações antigas continuem carregando sem quebrar; nada disso
+ * é selecionável na interface.
+ */
+export type ProviderKind = "keew" | "local" | "deepseek";
 
 export type ProviderConfig = {
   kind: ProviderKind;

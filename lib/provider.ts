@@ -37,83 +37,76 @@ export type StreamFrame =
   | { t: "error"; v: string }
   | { t: "done" };
 
-export const PROVIDER_PRESETS: Record<string, { baseUrl: string; model: string; label: string; docs: string }> = {
-  deepseek: {
-    baseUrl: "https://api.deepseek.com/v1",
-    model: "deepseek-reasoner",
-    label: "DeepSeek (R1 / V3)",
-    docs: "https://api-docs.deepseek.com",
-  },
-  openrouter: {
-    baseUrl: "https://openrouter.ai/api/v1",
-    model: "deepseek/deepseek-r1",
-    label: "OpenRouter",
-    docs: "https://openrouter.ai/docs",
-  },
-  ollama: {
-    baseUrl: "http://127.0.0.1:11434/v1",
-    model: "deepseek-r1:8b",
-    label: "Ollama (local)",
-    docs: "https://ollama.com",
-  },
-  openai: {
-    baseUrl: "https://api.openai.com/v1",
-    model: "gpt-4o-mini",
-    label: "OpenAI-compatible",
-    docs: "https://platform.openai.com/docs",
-  },
-  groq: {
-    baseUrl: "https://api.groq.com/openai/v1",
-    model: "deepseek-r1-distill-llama-70b",
-    label: "Groq",
-    docs: "https://console.groq.com/docs",
-  },
-  together: {
-    baseUrl: "https://api.together.xyz/v1",
-    model: "deepseek-ai/DeepSeek-R1-Distill-Llama-70B",
-    label: "Together AI",
-    docs: "https://docs.together.ai",
-  },
+/**
+ * Backends de raciocínio aceitos pelo motor da Keew.
+ * São detalhe de infraestrutura: nenhum nome daqui é exibido ao usuário, e o
+ * modelo público é sempre "keew-1" (ver lib/keew-api.ts).
+ */
+type Backend = "deepseek" | "openai-compatible" | "gemini" | "anthropic" | "none";
+
+type BackendPreset = { baseUrl: string; model: string; backend: Backend };
+
+const BACKENDS: Record<Backend, BackendPreset> = {
+  deepseek: { baseUrl: "https://api.deepseek.com/v1", model: "deepseek-reasoner", backend: "deepseek" },
+  "openai-compatible": { baseUrl: "http://127.0.0.1:8080/v1", model: "keew-local", backend: "openai-compatible" },
   gemini: {
     baseUrl: "https://generativelanguage.googleapis.com/v1beta",
     model: "gemini-2.5-flash",
-    label: "Google Gemini",
-    docs: "https://ai.google.dev/gemini-api/docs",
+    backend: "gemini",
   },
-  anthropic: {
-    baseUrl: "https://api.anthropic.com/v1",
-    model: "claude-sonnet-4-5",
-    label: "Anthropic",
-    docs: "https://docs.anthropic.com",
-  },
-  local: {
-    baseUrl: "http://127.0.0.1:8080/v1",
-    model: "keew-local",
-    label: "Inferência própria (vLLM/TGI)",
-    docs: "docs/OWN-MODEL.md",
-  },
+  anthropic: { baseUrl: "https://api.anthropic.com/v1", model: "claude-sonnet-4-5", backend: "anthropic" },
+  none: { baseUrl: "", model: "keew-1", backend: "none" },
 };
 
-/** Resolve the effective gateway config: server env ▸ client request ▸ preset defaults. */
-export function resolveConfig(client?: Partial<GatewayConfig>): GatewayConfig {
-  const envKind = (process.env.KEEW_MODEL_PROVIDER || "").trim();
-  const envKey = (process.env.KEEW_MODEL_API_KEY || "").trim();
+/** Lê o ambiente e monta o motor. O servidor é o dono da chave, sempre. */
+export function resolveConfig(): GatewayConfig {
   const envBase = (process.env.KEEW_MODEL_BASE_URL || "").trim();
+  const envKey = (process.env.KEEW_MODEL_API_KEY || "").trim();
   const envModel = (process.env.KEEW_MODEL_NAME || "").trim();
+  const envKind = (process.env.KEEW_MODEL_PROVIDER || "").trim();
 
-  const kind = ((envKind || client?.kind || "deepseek") as ProviderKind);
-  const preset = PROVIDER_PRESETS[kind === "openai-compatible" ? "openai" : kind];
+  // qual backend usar: explícito no env, senão inferido pela base URL
+  const backend: Backend =
+    envKind === "gemini"
+      ? "gemini"
+      : envKind === "anthropic"
+        ? "anthropic"
+        : /anthropic\.com/.test(envBase)
+          ? "anthropic"
+          : /generativelanguage\.googleapis\.com/.test(envBase)
+            ? "gemini"
+            : envKind === "deepseek" || /api\.deepseek\.com/.test(envBase)
+              ? "deepseek"
+              : envBase
+                ? "openai-compatible"
+                : envKind
+                  ? "openai-compatible"
+                  : "deepseek";
+
+  const preset = BACKENDS[backend];
   return {
-    kind,
-    baseUrl: envBase || client?.baseUrl || preset?.baseUrl || PROVIDER_PRESETS.deepseek.baseUrl,
-    model: envModel || client?.model || preset?.model || PROVIDER_PRESETS.deepseek.model,
-    apiKey: envKey || client?.apiKey || undefined,
+    // o "kind" público é sempre keew; o backend real fica em baseUrl/model
+    kind: "keew",
+    baseUrl: envBase || preset.baseUrl,
+    model: envModel || preset.model,
+    apiKey: envKey || undefined,
   };
 }
 
+/** Qual protocolo de streaming usar para esta configuração. */
+function backendOf(cfg: GatewayConfig): Backend {
+  if (/anthropic\.com/.test(cfg.baseUrl)) return "anthropic";
+  if (/generativelanguage\.googleapis\.com/.test(cfg.baseUrl)) return "gemini";
+  if (!cfg.baseUrl) return "none";
+  return "openai-compatible";
+}
+
+/** O motor está pronto para raciocinar com chave própria? */
 export function isConfigured(cfg: GatewayConfig): boolean {
-  if (cfg.kind === "ollama" || cfg.kind === "openai-compatible") {
-    // local endpoints usually need no key; treat a key or a loopback base URL as ready
+  const backend = backendOf(cfg);
+  if (backend === "none") return false;
+  // endpoints locais normalmente não exigem chave
+  if (backend === "openai-compatible") {
     return Boolean(cfg.apiKey) || /localhost|127\.0\.0\.1|0\.0\.0\.0/.test(cfg.baseUrl);
   }
   return Boolean(cfg.apiKey);
@@ -143,12 +136,13 @@ function textWithAttachments(m: GatewayRequest["messages"][number]): string {
 /* ─────────────────────────────────────────────────────────────── streaming */
 
 export function streamChat(req: GatewayRequest): ReadableStream<Uint8Array> {
-  if (req.config.kind === "gemini") return streamGemini(req);
-  if (req.config.kind === "anthropic") return streamAnthropic(req);
+  const backend = backendOf(req.config);
+  if (backend === "gemini") return streamGemini(req);
+  if (backend === "anthropic") return streamAnthropic(req);
   return streamOpenAI(req);
 }
 
-/** OpenAI-compatible: DeepSeek, OpenRouter, Groq, Together, Ollama, vLLM, TGI, LM Studio… */
+/** Protocolo de streaming compatível com o formato aberto mais usado. */
 function streamOpenAI(req: GatewayRequest): ReadableStream<Uint8Array> {
   const { config, messages, system, temperature = 0.7, maxTokens = 4096, signal } = req;
 
@@ -170,10 +164,6 @@ function streamOpenAI(req: GatewayRequest): ReadableStream<Uint8Array> {
 
         const headers: Record<string, string> = { "Content-Type": "application/json" };
         if (config.apiKey) headers.Authorization = `Bearer ${config.apiKey}`;
-        if (config.kind === "openrouter") {
-          headers["HTTP-Referer"] = process.env.NEXT_PUBLIC_APP_URL || "https://keew-ia.vercel.app";
-          headers["X-Title"] = "Keew IA";
-        }
 
         const res = await fetch(`${config.baseUrl.replace(/\/$/, "")}/chat/completions`, {
           method: "POST",
@@ -224,14 +214,14 @@ function streamOpenAI(req: GatewayRequest): ReadableStream<Uint8Array> {
               usage = { in: json.usage.prompt_tokens, out: json.usage.completion_tokens };
             }
             const finish = json.choices?.[0]?.finish_reason;
-            if (finish === "error") emit({ t: "error", v: "O provedor encerrou a resposta com erro." });
+            if (finish === "error") emit({ t: "error", v: "A Keew não concluiu esta resposta." });
           }
         }
         if (usage.in || usage.out) emit({ t: "usage", v: usage });
         emit({ t: "done" });
         controller.close();
       } catch (err) {
-        emit({ t: "error", v: (err as Error).message || "Falha de rede ao falar com o provedor." });
+        emit({ t: "error", v: "A Keew não alcançou o motor de raciocínio." });
         emit({ t: "done" });
         controller.close();
       }

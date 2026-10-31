@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import {
-  BookOpen, Bot, Check, Cpu, Download, Eye, HardDrive, KeyRound, Palette, Rocket, Settings2,
+  BookOpen, Bot, Check, Download, Eye, HardDrive, KeyRound, Palette, Rocket, Settings2,
   SlidersHorizontal, Sparkles, X,
 } from "lucide-react";
 
@@ -14,13 +14,11 @@ import { AppsTab } from "./tabs/apps";
 import { AutomationsTab } from "./tabs/automations";
 import { DataTab } from "./tabs/data";
 import { KnowledgeTab } from "./tabs/knowledge";
-import { ModelTab } from "./tabs/model";
 import { SystemTab } from "./tabs/system";
 
 const TABS = [
   { id: "aparencia", label: "Aparência", icon: Palette, group: "Workspace" },
   { id: "agentes", label: "Agentes", icon: Bot, group: "Workspace" },
-  { id: "modelo", label: "Modelo", icon: Cpu, group: "Inteligência" },
   { id: "conhecimento", label: "Conhecimento", icon: BookOpen, group: "Inteligência" },
   { id: "automacoes", label: "Automações 24/7", icon: Sparkles, group: "Inteligência" },
   { id: "sistema", label: "Sistema", icon: SlidersHorizontal, group: "Conta & dados" },
@@ -81,7 +79,7 @@ export function SettingsDialog() {
           </nav>
           <div className="border-t border-line px-4 py-3">
             <p className="font-mono text-[9px] uppercase tracking-[0.14em] text-subtle">Keew IA · v1.0.0</p>
-            <p className="mt-0.5 text-[10px] text-subtle">núcleo próprio + gateway</p>
+            <p className="mt-0.5 text-[10px] text-subtle">modelo próprio · sempre online</p>
           </div>
         </aside>
 
@@ -111,13 +109,12 @@ export function SettingsDialog() {
             <div className="mx-auto max-w-[720px] px-4 py-5 sm:px-7 sm:py-6">
               {settingsTab === "aparencia" && <AppearanceTab />}
               {settingsTab === "agentes" && <AgentsTab />}
-              {settingsTab === "modelo" && <ModelTab />}
               {settingsTab === "conhecimento" && <KnowledgeTab />}
               {settingsTab === "automacoes" && <AutomationsTab />}
               {settingsTab === "sistema" && <SystemTab />}
               {settingsTab === "dados" && <DataTab />}
               {settingsTab === "apps" && <AppsTab />}
-              {(settingsTab === "conta" || settingsTab === "workspace") && <SystemTab />}
+              {(settingsTab === "conta" || settingsTab === "workspace" || settingsTab === "modelo") && <SystemTab />}
             </div>
           </div>
         </div>

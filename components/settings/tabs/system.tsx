@@ -11,12 +11,12 @@ import { isSupabaseReady } from "@/lib/flags";
 import { useStore } from "@/lib/store";
 
 type Health = {
-  ok: boolean; version: string; uptimeSec: number; provider: string; model: string;
+  ok: boolean; version: string; uptimeSec: number; model: string; engine?: string;
   configured: boolean; supabase: boolean; region?: string; node?: string; at: string;
 };
 
 export function SystemTab() {
-  const { settings, setSettings, accessKey, setAccessKey, pushToast, provider, knowledge, automations } = useStore();
+  const { settings, setSettings, accessKey, setAccessKey, pushToast, knowledge, automations } = useStore();
   const [health, setHealth] = useState<Health | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -75,7 +75,7 @@ export function SystemTab() {
             </div>
             <span className="mt-1 block text-[10px] leading-relaxed text-subtle">
               Se o servidor tiver <code className="rounded bg-elev px-1 font-mono">KEEW_ACCESS_KEY</code> definido, esta
-              chave é enviada em todo pedido ao gateway.
+              chave é enviada em todo pedido ao serviço da Keew.
             </span>
           </label>
         </div>
@@ -97,8 +97,8 @@ export function SystemTab() {
           />
           <StatCard
             icon={<Cpu className="size-3.5" />}
-            label="Provedor"
-            value={health ? `${health.provider} · ${health.model?.slice(0, 16)}` : "—"}
+            label="Inteligência"
+            value={health ? `Keew 1${health.configured ? " · completa" : " · núcleo"} ` : "—"}
             tone={health?.configured ? "ok" : "warn"}
           />
           <StatCard
@@ -128,7 +128,7 @@ export function SystemTab() {
         <div className="rounded-[var(--r-lg)] border border-line bg-panel/50 p-3">
           <dl className="space-y-1.5 text-[11px]">
             <Line k="Agente padrão" v={settings.defaultAgentId} />
-            <Line k="Provedor configurado" v={provider.kind} />
+            <Line k="Inteligência" v={health?.configured ? "Keew 1 · completa" : "Keew Core"} />
             <Line k="Documentos na base" v={String(knowledge.length)} />
             <Line k="Automações registradas" v={String(automations.length)} />
             <Line k="Sincronização em nuvem" v={isSupabaseReady() ? "ativa" : "somente local"} />
@@ -145,9 +145,9 @@ export function SystemTab() {
           </p>
           <ul className="mt-1.5 space-y-1 text-[10.5px] leading-relaxed text-muted">
             <li>• Conversas ficam no seu navegador (localStorage) — nada sai sem você enviar.</li>
-            <li>• Ao enviar, o texto vai ao gateway e só então ao provedor escolhido.</li>
-            <li>• Chaves nunca aparecem em logs; no servidor só existem via variáveis de ambiente.</li>
-            <li>• O modo <span className="text-fg">Núcleo local</span> não faz nenhuma chamada externa.</li>
+            <li>• Ao enviar, o texto é processado pelo motor da Keew no servidor.</li>
+            <li>• As chaves do motor nunca aparecem em logs nem chegam ao navegador.</li>
+            <li>• Cálculos, datas, conversões e resumos rodam no núcleo local, sem chamada externa.</li>
           </ul>
         </div>
       </section>
