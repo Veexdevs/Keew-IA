@@ -59,12 +59,23 @@ const BACKENDS: Record<Backend, BackendPreset> = {
   none: { baseUrl: "", model: "keew-1", backend: "none" },
 };
 
-/** Lê o ambiente e monta o motor. O servidor é o dono da chave, sempre. */
-export function resolveConfig(): GatewayConfig {
+/**
+ * Lê o ambiente e monta o motor.
+ *
+ * A chave pode vir de dois lugares, nesta ordem de prioridade:
+ *   1. `KEEW_MODEL_API_KEY` no ambiente — o dono do servidor decide
+ *   2. a chave que o usuário colou na tela, enviada a cada pedido
+ *
+ * O segundo caminho é necessário porque o servidor não tem armazenamento
+ * durável: guardar a chave em `process.env` numa função serverless faria o
+ * usuário ver "conectado" e continuar sem resposta no pedido seguinte.
+ */
+export function resolveConfig(callerKey?: string): GatewayConfig {
   const envBase = (process.env.KEEW_MODEL_BASE_URL || "").trim();
   const envKey = (process.env.KEEW_MODEL_API_KEY || "").trim();
   const envModel = (process.env.KEEW_MODEL_NAME || "").trim();
   const envKind = (process.env.KEEW_MODEL_PROVIDER || "").trim();
+  const key = envKey || (callerKey || "").trim();
 
   // qual backend usar: explícito no env, senão inferido pela base URL
   const backend: Backend =
@@ -90,7 +101,7 @@ export function resolveConfig(): GatewayConfig {
     kind: "keew",
     baseUrl: envBase || preset.baseUrl,
     model: envModel || preset.model,
-    apiKey: envKey || undefined,
+    apiKey: key || undefined,
   };
 }
 
@@ -370,15 +381,17 @@ function streamAnthropic(req: GatewayRequest): ReadableStream<Uint8Array> {
 
 export function normalizeError(status: number, detail: string, cfg: GatewayConfig): string {
   const snippet = detail.replace(/\s+/g, " ").slice(0, 320);
+  // A voz é sempre da Keew: nada de nome de fornecedor, base URL ou modelo
+  // interno. O usuário só precisa saber o que fazer a seguir.
   if (status === 401 || status === 403)
-    return `Credenciais recusadas pelo provedor (${status}). Verifique a chave de API em Configurações → Modelo.`;
+    return "A chave do motor foi recusada. Abra Configurações → Motor e confira a chave.";
   if (status === 402 || /insufficient|quota|credit/i.test(detail))
-    return "O provedor informou saldo/quota insuficiente. Adicione créditos ou troque de modelo.";
+    return "A conta do motor está sem saldo ou cota. Sem isso eu não consigo raciocinar sobre assuntos abertos.";
   if (status === 404)
-    return `Modelo ou endpoint não encontrado (404). Confira "${cfg.model}" e a base URL "${cfg.baseUrl}".`;
+    return "O motor não encontrou o modelo configurado. Confira a chave em Configurações → Motor.";
   if (status === 429)
-    return "Limite de requisições atingido (429). A Keew vai tentar novamente — aguarde alguns segundos.";
+    return "O motor está limitando pedidos neste momento. Tente de novo em alguns segundos.";
   if (status >= 500)
-    return `O provedor está instável (${status}). A Keew pode continuar em Modo Local enquanto isso.`;
-  return `Falha do provedor (${status}). ${snippet}`;
+    return "O motor está instável agora. O núcleo próprio continua respondendo conta, data e conversão.";
+  return `O motor não concluiu este pedido (${status}). ${snippet}`;
 }

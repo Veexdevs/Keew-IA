@@ -62,7 +62,9 @@ export async function POST(req: NextRequest) {
     return new Response(JSON.stringify({ ok: false, error: "Mensagem ausente" }), { status: 400 });
   }
 
-  const config = resolveConfig();
+  // chave do usuário: vem do navegador a cada pedido, nunca fica no servidor
+  const callerKey = (req.headers.get("x-keew-engine-key") || "").trim();
+  const config = resolveConfig(callerKey);
   const ready = isConfigured(config);
   const mode = body.mode || "auto";
 

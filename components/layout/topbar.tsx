@@ -21,10 +21,15 @@ export function Topbar() {
   const chat = chats.find((c) => c.id === currentChatId) || chats[0];
   const [engine, setEngine] = useState<Engine | null>(null);
 
+  const engineKey = settings.engineKey;
+
   useEffect(() => {
     let alive = true;
     const ping = () =>
-      fetch("/api/engine", { cache: "no-store" })
+      fetch("/api/engine", {
+        cache: "no-store",
+        headers: engineKey ? { "x-keew-engine-key": engineKey } : {},
+      })
         .then((r) => r.json())
         .then((d) => alive && setEngine(d))
         .catch(() => alive && setEngine(null));
@@ -34,7 +39,7 @@ export function Topbar() {
       alive = false;
       clearInterval(id);
     };
-  }, []);
+  }, [engineKey]);
 
   const theme = THEME_MAP[settings.theme as ThemeId] || THEME_MAP.onyx;
   const toggleMode = () => setSettings({ theme: theme.mode === "dark" ? "arctic" : "onyx" });

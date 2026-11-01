@@ -10,8 +10,9 @@ import { engineState } from "@/lib/engine";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET() {
-  const state = engineState();
+export async function GET(req: Request) {
+  const callerKey = (req.headers.get("x-keew-engine-key") || "").trim();
+  const state = engineState(callerKey);
   return new Response(
     JSON.stringify({
       model: KEEW_API.model,

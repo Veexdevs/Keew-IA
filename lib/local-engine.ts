@@ -694,8 +694,9 @@ export function fallback(query: string): EngineResult {
       `**"${topic}"** é uma pergunta de linguagem aberta, e o núcleo da Keew que está rodando aqui é ` +
       `determinístico: ele resolve conta, data, conversão de unidade, transformação de texto e busca nos ` +
       `seus documentos — não redige nem interpreta texto livre.\n\n` +
-      `Para a Keew responder qualquer assunto, falta conectar o motor de linguagem dela (uma chave de API ` +
-      `no servidor). Enquanto isso não acontece, prefiro te dizer isso do que inventar uma resposta.\n\n` +
+      `Para a Keew responder qualquer assunto, falta conectar o motor de linguagem dela em ` +
+      `Configurações → Motor, colando uma chave. Enquanto isso não acontece, prefiro te dizer isso ` +
+      `do que inventar uma resposta.\n\n` +
       `**O que eu resolvo agora:**\n\n` +
       `| Peça | Exemplo |\n` +
       `| --- | --- |\n` +

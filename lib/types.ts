@@ -82,6 +82,12 @@ export type Settings = {
   userNickname: string;
   defaultAgentId: string;
   defaultModel: string;
+  /**
+   * Chave do motor de linguagem. Vive SÓ no navegador do usuário e é enviada
+   * por cabeçalho em cada pedido — o servidor não tem armazenamento durável,
+   * então guardar a chave lá seria fingir que ela persistiu.
+   */
+  engineKey: string;
 };
 
 /**

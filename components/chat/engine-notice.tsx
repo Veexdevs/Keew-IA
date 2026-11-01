@@ -14,18 +14,21 @@ import { useStore } from "@/lib/store";
  */
 export function EngineNotice() {
   const openSettings = useStore((s) => s.openSettings);
+  const engineKey = useStore((s) => s.settings.engineKey);
   const [ready, setReady] = useState<boolean | null>(null);
 
   useEffect(() => {
     let alive = true;
-    fetch("/api/engine")
+    fetch("/api/engine", {
+      headers: engineKey ? { "x-keew-engine-key": engineKey } : {},
+    })
       .then((r) => r.json())
       .then((d) => alive && setReady(Boolean(d.ready)))
       .catch(() => alive && setReady(false));
     return () => {
       alive = false;
     };
-  }, []);
+  }, [engineKey]);
 
   if (ready !== false) return null;
 
