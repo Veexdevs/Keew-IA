@@ -99,14 +99,14 @@ export function Composer() {
         }}
       />
 
-      <div className="relative rounded-full border border-line bg-panel/95 transition-colors focus-within:border-line-strong">
+      <div className="relative rounded-[26px] border border-line bg-panel transition-colors focus-within:border-line-strong focus-within:shadow-[0_2px_20px_-12px_rgb(var(--glow)/0.65)]">
         {/* anexos: aparecem numa linha acima, discreta */}
         {!!attachments.length && (
           <div className="flex flex-wrap gap-1 px-3 pt-2">
             {attachments.map((a) => (
               <span
                 key={a.id}
-                className="anim-scale inline-flex max-w-[200px] items-center gap-1 rounded-full border border-line bg-elev py-0.5 pl-2 pr-1 text-[10px] text-muted"
+                className="anim-scale inline-flex max-w-[220px] items-center gap-1.5 rounded-full border border-line bg-elev py-1 pl-2.5 pr-1 text-[11px] text-muted"
               >
                 {a.mime.startsWith("image/") ? (
                   <ImageIcon className="size-2.5 shrink-0" />
@@ -127,10 +127,10 @@ export function Composer() {
         )}
 
         {/* uma linha: anexo · campo · enviar */}
-        <div className="flex items-center gap-1 py-1 pl-1.5 pr-1.5">
+        <div className="flex items-end gap-1 py-1.5 pl-2 pr-2">
           <button
             onClick={() => fileRef.current?.click()}
-            className="grid size-8 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-elev hover:text-fg"
+            className="grid size-9 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-elev hover:text-fg"
             title="Anexar arquivo"
             aria-label="Anexar arquivo"
           >
@@ -148,13 +148,13 @@ export function Composer() {
             onKeyDown={onKeyDown}
             rows={1}
             placeholder="Fale com a Keew…"
-            className="block max-h-[160px] min-w-0 flex-1 resize-none bg-transparent py-2 text-[13.5px] leading-[1.55] text-fg placeholder:text-subtle focus:outline-none"
+            className="block max-h-[180px] min-w-0 flex-1 resize-none bg-transparent py-2 text-[15px] leading-[1.5] text-fg placeholder:text-subtle focus:outline-none"
           />
 
           {busy ? (
             <button
               onClick={stop}
-              className="grid size-8 shrink-0 place-items-center rounded-full border border-line-strong bg-elev text-fg transition-colors hover:text-rose-400"
+              className="grid size-9 shrink-0 place-items-center rounded-full border border-line-strong bg-elev text-fg transition-colors hover:text-rose-400"
               title="Parar"
               aria-label="Parar"
             >
@@ -164,7 +164,7 @@ export function Composer() {
             <button
               onClick={() => void submit()}
               disabled={!value.trim()}
-              className="grid size-8 shrink-0 place-items-center rounded-full bg-accent text-accent-fg transition-all hover:brightness-110 active:scale-95 disabled:pointer-events-none disabled:opacity-25"
+              className="grid size-9 shrink-0 place-items-center rounded-full bg-accent text-accent-fg transition-all hover:opacity-90 active:scale-95 disabled:pointer-events-none disabled:opacity-25"
               title="Enviar"
               aria-label="Enviar"
             >
