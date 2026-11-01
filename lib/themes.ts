@@ -17,15 +17,15 @@ export type ThemeMeta = {
 };
 
 export const THEMES: ThemeMeta[] = [
-  { id: "onyx",     name: "Onyx",     hint: "Marca Keew · preto absoluto",    mode: "dark",  swatch: ["#000000", "#0b0b0b", "#0b5cff"], accent: "#0b5cff" },
+  { id: "onyx",     name: "Onyx",     hint: "Padrão Keew · grafite quente",   mode: "dark",  swatch: ["#141413", "#1a1a19", "#2f6bff"], accent: "#2f6bff" },
   { id: "midnight", name: "Midnight", hint: "Azul profundo",                  mode: "dark",  swatch: ["#060913", "#0d1426", "#3b82f6"], accent: "#3b82f6" },
-  { id: "obsidian", name: "Obsidian", hint: "Studio monocromático",           mode: "dark",  swatch: ["#000000", "#0e0e0e", "#fafafa"], accent: "#fafafa" },
+  { id: "obsidian", name: "Obsidian", hint: "Studio monocromático",           mode: "dark",  swatch: ["#0f0f0f", "#1d1d1d", "#fafafa"], accent: "#fafafa" },
   { id: "aurora",   name: "Aurora",   hint: "Violeta crepuscular",            mode: "dark",  swatch: ["#08060f", "#130e22", "#8b5cf6"], accent: "#8b5cf6" },
   { id: "ember",    name: "Ember",    hint: "Carvão e âmbar",                 mode: "dark",  swatch: ["#0a0705", "#18110c", "#f97316"], accent: "#f97316" },
   { id: "matrix",   name: "Matrix",   hint: "Terminal fosforescente",         mode: "dark",  swatch: ["#000603", "#04150c", "#22c55e"], accent: "#22c55e" },
   { id: "cyber",    name: "Cyber",    hint: "Ciano neon",                     mode: "dark",  swatch: ["#04030a", "#0d0a1c", "#22d3ee"], accent: "#22d3ee" },
   { id: "sakura",   name: "Sakura",   hint: "Ameixa e blush",                 mode: "dark",  swatch: ["#0c0508", "#1a0b12", "#f472b6"], accent: "#f472b6" },
-  { id: "graphite", name: "Graphite", hint: "Ardósia e limão",                mode: "dark",  swatch: ["#0c0d0f", "#181b1f", "#a3e635"], accent: "#a3e635" },
+  { id: "graphite", name: "Graphite", hint: "Ardósia e limão",                mode: "dark",  swatch: ["#15171a", "#23272c", "#a3e635"], accent: "#a3e635" },
   { id: "depth",    name: "Depth",    hint: "Vidro oceânico",                 mode: "dark",  swatch: ["#001016", "#072630", "#06b6d4"], accent: "#06b6d4" },
   { id: "arctic",   name: "Arctic",   hint: "Luz do dia",                     mode: "light", swatch: ["#f7f9fc", "#eef2f8", "#004cfd"], accent: "#004cfd" },
   { id: "papyrus",  name: "Papyrus",  hint: "Editorial quente",               mode: "light", swatch: ["#faf6ef", "#f2ebde", "#b45309"], accent: "#b45309" },

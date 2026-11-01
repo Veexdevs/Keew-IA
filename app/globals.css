@@ -24,39 +24,39 @@
 
 :root {
   /* structural defaults — overridden by [data-theme] */
-  --bg: #000000;
-  --panel: #050505;
-  --elev: #0b0b0b;
-  --line: #171717;
-  --line-strong: #262626;
-  --fg: #f2f2f2;
-  --muted: #8f8f8f;
-  --subtle: #5c5c5c;
-  --accent: #0b5cff;
+  --bg: #141413;
+  --panel: #1a1a19;
+  --elev: #232322;
+  --line: #2b2b29;
+  --line-strong: #3a3a37;
+  --fg: #f5f4f1;
+  --muted: #a3a29c;
+  --subtle: #74736d;
+  --accent: #2f6bff;
   --accent-fg: #ffffff;
   --accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
   --accent-line: color-mix(in srgb, var(--accent) 38%, transparent);
-  --glow: 11 92 255;
+  --glow: 47 107 255;
   --bubble-user-bg: var(--accent);
   --bubble-user-fg: #ffffff;
-  --code-bg: #060606;
+  --code-bg: #1b1b1a;
   --sel: color-mix(in srgb, var(--accent) 32%, transparent);
 
   --font-ui: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-code: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
 
   /* radius scale */
-  --r-xs: 5px;
-  --r-sm: 7px;
-  --r-md: 10px;
-  --r-lg: 14px;
-  --r-xl: 18px;
-  --r-2xl: 24px;
+  --r-xs: 6px;
+  --r-sm: 9px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 22px;
+  --r-2xl: 28px;
 
   /* density */
-  --row-py: 1.05rem;
-  --gap: 1.5rem;
-  --ui-fs: 0.8125rem;
+  --row-py: 1.15rem;
+  --gap: 1.75rem;
+  --ui-fs: 0.875rem;
 }
 
 /* ── radius presets ─────────────────────────────────────────────────────── */
@@ -73,12 +73,12 @@
    THEMES
    ══════════════════════════════════════════════════════════════════════════ */
 
-/* 1 · ONYX — brand default */
+/* 1 · ONYX — brand default: graphite quente, não preto absoluto */
 [data-theme="onyx"] {
-  --bg: #000000; --panel: #050505; --elev: #0b0b0b;
-  --line: #161616; --line-strong: #272727;
-  --fg: #f2f2f2; --muted: #8d8d8d; --subtle: #5a5a5a;
-  --accent: #0b5cff; --glow: 11 92 255; --code-bg: #060606;
+  --bg: #141413; --panel: #1a1a19; --elev: #232322;
+  --line: #2b2b29; --line-strong: #3a3a37;
+  --fg: #f5f4f1; --muted: #a3a29c; --subtle: #74736d;
+  --accent: #2f6bff; --glow: 47 107 255; --code-bg: #1b1b1a;
 }
 
 /* 2 · MIDNIGHT — deep navy */
@@ -91,8 +91,8 @@
 
 /* 3 · OBSIDIAN — monochrome studio */
 [data-theme="obsidian"] {
-  --bg: #000000; --panel: #070707; --elev: #0e0e0e;
-  --line: #1a1a1a; --line-strong: #2e2e2e;
+  --bg: #0f0f0f; --panel: #151515; --elev: #1d1d1d;
+  --line: #262626; --line-strong: #383838;
   --fg: #fafafa; --muted: #9a9a9a; --subtle: #666666;
   --accent: #fafafa; --accent-fg: #000000; --glow: 255 255 255; --code-bg: #080808;
 }
@@ -142,7 +142,7 @@
 [data-theme="arctic"] {
   --bg: #f7f9fc; --panel: #ffffff; --elev: #eef2f8;
   --line: #e2e8f0; --line-strong: #cbd5e1;
-  --fg: #0b1220; --muted: #5b6b82; --subtle: #8595a8;
+  --fg: #0b1220; --muted: #55657c; --subtle: #6f7f94;
   --accent: #004cfd; --glow: 0 76 253; --code-bg: #f1f5fb;
   --sel: color-mix(in srgb, var(--accent) 18%, transparent);
 }
@@ -160,7 +160,7 @@
 [data-theme="linen"] {
   --bg: #f4f4f2; --panel: #fbfbfa; --elev: #ecece9;
   --line: #e3e3df; --line-strong: #cfcfc9;
-  --fg: #141413; --muted: #63635e; --subtle: #8f8f88;
+  --fg: #141413; --muted: #5d5d58; --subtle: #7a7a74;
   --accent: #141413; --accent-fg: #ffffff; --glow: 20 20 19; --code-bg: #efefec;
   --sel: color-mix(in srgb, var(--accent) 14%, transparent);
 }
@@ -176,7 +176,7 @@
 
 /* 13 · GRAPHITE — slate & lime */
 [data-theme="graphite"] {
-  --bg: #0c0d0f; --panel: #111316; --elev: #181b1f;
+  --bg: #15171a; --panel: #1b1e22; --elev: #23272c;
   --line: #22262b; --line-strong: #343a41;
   --fg: #e9edf1; --muted: #8e99a6; --subtle: #626c78;
   --accent: #a3e635; --accent-fg: #101802; --glow: 163 230 53; --code-bg: #0a0b0d;
@@ -211,7 +211,7 @@ body {
 
 ::selection { background: var(--sel); color: var(--fg); }
 
-::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
   background: color-mix(in srgb, var(--line-strong) 90%, transparent);
@@ -355,12 +355,13 @@ textarea { field-sizing: content; }
    MARKDOWN
    ══════════════════════════════════════════════════════════════════════════ */
 .md {
-  font-size: auto;
-  line-height: 1.72;
+  font-size: inherit;
+  line-height: 1.78;
   color: var(--fg);
   word-break: break-word;
+  letter-spacing: 0.002em;
 }
-.md > * + * { margin-top: 0.85em; }
+.md > * + * { margin-top: 1.05em; }
 .md h1, .md h2, .md h3, .md h4 {
   font-weight: 600;
   letter-spacing: -0.015em;

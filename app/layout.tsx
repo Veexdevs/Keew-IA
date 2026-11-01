@@ -84,7 +84,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 var raw=localStorage.getItem('keew-ia-v1');if(!raw)return;
 var s=JSON.parse(raw).state||{};var st=s.settings||{};
 var root=document.documentElement;
-var THEMES={onyx:'#0b5cff',midnight:'#3b82f6',obsidian:'#fafafa',aurora:'#8b5cf6',ember:'#f97316',matrix:'#22c55e',cyber:'#22d3ee',sakura:'#f472b6',graphite:'#a3e635',depth:'#06b6d4',arctic:'#004cfd',papyrus:'#b45309',linen:'#141413',solar:'#d97706'};
+var THEMES={onyx:'#2f6bff',midnight:'#3b82f6',obsidian:'#fafafa',aurora:'#8b5cf6',ember:'#f97316',matrix:'#22c55e',cyber:'#22d3ee',sakura:'#f472b6',graphite:'#a3e635',depth:'#06b6d4',arctic:'#004cfd',papyrus:'#b45309',linen:'#141413',solar:'#d97706'};
 var theme=st.theme||'onyx';
 root.dataset.theme=THEMES[theme]?theme:'onyx';
 root.dataset.radius=st.radius||'soft';

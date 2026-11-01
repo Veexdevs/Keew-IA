@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import {
-  BookOpen, Check, Download, Eye, HardDrive, KeyRound, Palette, Rocket, Settings2, X,
+  BookOpen, Check, Download, Eye, HardDrive, KeyRound, Palette, Rocket, Settings2, X, Zap,
 } from "lucide-react";
 
 import { useStore } from "@/lib/store";
@@ -10,9 +10,11 @@ import { useStore } from "@/lib/store";
 import { AppearanceTab } from "./tabs/appearance";
 import { AppsTab } from "./tabs/apps";
 import { DataTab } from "./tabs/data";
+import { EngineTab } from "./tabs/engine";
 import { KnowledgeTab } from "./tabs/knowledge";
 
 const TABS = [
+  { id: "motor", label: "Motor", icon: Zap, group: "Keew" },
   { id: "aparencia", label: "Aparência", icon: Palette, group: "Personalização" },
   { id: "conhecimento", label: "Conhecimento", icon: BookOpen, group: "Keew" },
   { id: "dados", label: "Dados", icon: HardDrive, group: "Keew" },
@@ -100,10 +102,11 @@ export function SettingsDialog() {
 
           <div className="scroll-thin min-h-0 flex-1 overflow-y-auto">
             <div className="mx-auto max-w-[720px] px-4 py-5 sm:px-7 sm:py-6">
+              {settingsTab === "motor" && <EngineTab />}
               {settingsTab === "conhecimento" && <KnowledgeTab />}
               {settingsTab === "dados" && <DataTab />}
               {settingsTab === "apps" && <AppsTab />}
-              {!["conhecimento", "dados", "apps"].includes(settingsTab) && <AppearanceTab />}
+              {!["motor", "conhecimento", "dados", "apps"].includes(settingsTab) && <AppearanceTab />}
             </div>
           </div>
         </div>

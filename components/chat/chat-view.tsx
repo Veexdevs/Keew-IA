@@ -80,13 +80,13 @@ export function ChatView() {
       {/* messages */}
       <div
         ref={scroller}
-        className="scroll-thin relative z-[1] min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 sm:px-5"
+        className="scroll-thin relative z-[1] min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6"
       >
-        <div className="mx-auto w-full max-w-[760px] pb-6 pt-4">
+        <div className="mx-auto w-full max-w-[700px] px-1 pb-8 pt-6">
           {messages.length === 0 ? (
             <Welcome />
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-9">
               {messages.map((m, i) => (
                 <MessageRow key={m.id} message={m} isLast={i === messages.length - 1} />
               ))}
@@ -102,7 +102,7 @@ export function ChatView() {
             setStuck(true);
             bottom.current?.scrollIntoView({ behavior: "smooth" });
           }}
-          className="anim-scale absolute bottom-[132px] left-1/2 z-20 -translate-x-1/2 rounded-full border border-line bg-panel/95 p-1.5 text-muted shadow-xl backdrop-blur transition-colors hover:text-fg"
+          className="anim-scale absolute bottom-[112px] left-1/2 z-20 -translate-x-1/2 rounded-full border border-line bg-panel/95 p-1.5 text-muted shadow-xl backdrop-blur transition-colors hover:text-fg"
           aria-label="Ir para o fim"
         >
           <ArrowDown className="size-4" />
@@ -110,8 +110,8 @@ export function ChatView() {
       )}
 
       {/* composer dock */}
-      <div className="relative z-[2] shrink-0 border-t border-line/70 bg-gradient-to-t from-bg via-bg to-bg/40 px-3 pb-2.5 pt-3 sm:px-5">
-        <div className="mx-auto w-full max-w-[760px]">
+      <div className="relative z-[2] shrink-0 bg-gradient-to-t from-bg via-bg to-transparent px-4 pb-4 pt-2 sm:px-6">
+        <div className="mx-auto w-full max-w-[700px]">
           <Composer />
         </div>
       </div>

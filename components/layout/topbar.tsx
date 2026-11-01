@@ -1,41 +1,33 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  BookOpen, Check, ChevronRight, Command, Menu, Monitor, Moon, PanelRight, Plus, Smartphone, Sun, Zap,
-} from "lucide-react";
+import { Command, Menu, Moon, PanelRight, Plus, Sun } from "lucide-react";
 
 import { useStore } from "@/lib/store";
 import { THEME_MAP, type ThemeId } from "@/lib/themes";
 
-type Health = {
-  ok: boolean;
-  model: string;
-  configured: boolean;
-  uptimeSec: number;
-  region?: string;
-};
+type Engine = { ready: boolean; label: string; detail: string };
 
+/**
+ * Barra superior — só o necessário.
+ *
+ * Antes: breadcrumb de workspace, contador de mensagens, selo de plataforma,
+ * status de saúde e cinco ícones. Agora: menu, título da conversa, e três
+ * ações. O estado do motor fica visível como uma bolinha discreta.
+ */
 export function Topbar() {
-  const {
-    chats, currentChatId, sidebarOpen, setSidebarOpen, settings, setSettings,
-    setCommandOpen, setContextOpen, contextOpen, openSettings,
-  } = useStore();
+  const { chats, currentChatId, sidebarOpen, setSidebarOpen, settings, setSettings, setCommandOpen, setContextOpen, contextOpen } =
+    useStore();
   const chat = chats.find((c) => c.id === currentChatId) || chats[0];
-  const [health, setHealth] = useState<Health | null>(null);
-  const [platform, setPlatform] = useState("web");
+  const [engine, setEngine] = useState<Engine | null>(null);
 
   useEffect(() => {
     let alive = true;
-    const ping = async () => {
-      try {
-        const res = await fetch("/api/health", { cache: "no-store" });
-        const data = await res.json();
-        if (alive) setHealth(data);
-      } catch {
-        if (alive) setHealth(null);
-      }
-    };
+    const ping = () =>
+      fetch("/api/engine", { cache: "no-store" })
+        .then((r) => r.json())
+        .then((d) => alive && setEngine(d))
+        .catch(() => alive && setEngine(null));
     void ping();
     const id = setInterval(ping, 60_000);
     return () => {
@@ -44,88 +36,50 @@ export function Topbar() {
     };
   }, []);
 
-  useEffect(() => {
-    void import("@/lib/flags").then((m) => setPlatform(m.platform()));
-  }, []);
-
   const theme = THEME_MAP[settings.theme as ThemeId] || THEME_MAP.onyx;
-  const toggleMode = () => {
-    const next = theme.mode === "dark" ? "arctic" : "onyx";
-    setSettings({ theme: next });
-  };
+  const toggleMode = () => setSettings({ theme: theme.mode === "dark" ? "arctic" : "onyx" });
 
   return (
-    <header className="relative z-20 flex h-14 shrink-0 items-center gap-2 border-b border-line bg-bg/85 px-3 backdrop-blur-xl">
+    <header className="relative z-20 flex h-14 shrink-0 items-center gap-1.5 px-3 sm:px-4">
       <button
         onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="rounded-[var(--r-sm)] p-1.5 text-muted transition-colors hover:bg-elev hover:text-fg"
-        aria-label="Alternar menu"
+        className="grid size-9 place-items-center rounded-[var(--r-md)] text-muted transition-colors hover:bg-elev hover:text-fg"
+        aria-label="Menu"
       >
-        <Menu className="size-4" />
+        <Menu className="size-[18px]" />
       </button>
 
-      {/* breadcrumb */}
-      <div className="flex min-w-0 items-center gap-1.5 text-[12px]">
-        <button
-          onClick={() => openSettings("workspace")}
-          className="hidden shrink-0 items-center gap-1.5 text-subtle transition-colors hover:text-fg sm:flex"
-          title="Workspace"
-        >
-          <span className="grid size-4 place-items-center rounded-[3px] border border-line bg-elev font-mono text-[8px] text-accent">
-            K
-          </span>
-          Workspace
-        </button>
-        <ChevronRight className="hidden size-3 shrink-0 text-subtle sm:block" />
-        <span className="truncate font-medium text-fg">{chat?.title || "Nova conversa"}</span>
-        <span className="hidden shrink-0 items-center gap-1 rounded-[3px] border border-line bg-elev px-1 py-0.5 font-mono text-[9px] uppercase text-subtle md:flex">
-          {chat?.messages.length || 0} msg
+      <div className="flex min-w-0 items-center gap-2 pl-1">
+        <span className="truncate text-[13.5px] font-medium text-fg">
+          {chat?.title || "Nova conversa"}
         </span>
+        {engine && (
+          <span
+            className="flex shrink-0 items-center gap-1.5"
+            title={engine.ready ? "Motor de linguagem conectado" : engine.detail}
+          >
+            <span
+              className={`size-1.5 rounded-full ${engine.ready ? "bg-emerald-500 pulse-dot text-emerald-500" : "bg-amber-500/70"}`}
+            />
+            <span className="hidden text-[11px] text-subtle sm:inline">
+              {engine.ready ? "motor conectado" : "núcleo"}
+            </span>
+          </span>
+        )}
       </div>
 
-      <div className="ml-auto flex items-center gap-1">
-        {/* live status */}
-        <button
-          onClick={() => openSettings("sistema")}
-          className="hidden items-center gap-1.5 rounded-full border border-line bg-panel px-2 py-1 text-[10.5px] transition-colors hover:border-line-strong sm:flex"
-          title={health?.configured ? "Keew 1 · raciocínio completo" : "Keew Core · núcleo determinístico ativo"}
-        >
-          <span
-            className={`size-1.5 rounded-full ${
-              health?.configured ? "bg-emerald-500" : health ? "bg-amber-500" : "bg-rose-500"
-            } ${health?.configured ? "pulse-dot" : ""} ${health?.configured ? "text-emerald-500" : ""}`}
-          />
-          <span className="font-medium text-fg">
-            {health?.configured ? "24/7 online" : health ? "núcleo ativo" : "offline"}
-          </span>
-          <span className="hidden font-mono text-[9.5px] text-subtle lg:inline">
-            {health?.configured ? health.model?.slice(0, 18) : "KRL"}
-          </span>
-        </button>
-
-        <span className="hidden items-center gap-1 rounded-[var(--r-sm)] border border-line px-1.5 py-1 font-mono text-[9.5px] uppercase text-subtle lg:flex">
-          {platform === "web" ? <Monitor className="size-3" /> : <Smartphone className="size-3" />}
-          {platform}
-        </span>
-
+      <div className="ml-auto flex items-center gap-0.5">
         <IconBtn label="Novo chat" onClick={() => useStore.getState().newChat()}>
-          <Plus className="size-4" />
+          <Plus className="size-[18px]" />
         </IconBtn>
         <IconBtn label={theme.mode === "dark" ? "Tema claro" : "Tema escuro"} onClick={toggleMode}>
-          {theme.mode === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
-        </IconBtn>
-        <IconBtn label="Base de conhecimento" onClick={() => openSettings("conhecimento")}>
-          <BookOpen className="size-4" />
+          {theme.mode === "dark" ? <Sun className="size-[18px]" /> : <Moon className="size-[18px]" />}
         </IconBtn>
         <IconBtn label="Comandos (⌘K)" onClick={() => setCommandOpen(true)} className="hidden sm:grid">
-          <Command className="size-4" />
+          <Command className="size-[18px]" />
         </IconBtn>
-        <IconBtn
-          label="Painel de contexto"
-          onClick={() => setContextOpen(!contextOpen)}
-          active={contextOpen}
-        >
-          <PanelRight className="size-4" />
+        <IconBtn label="Detalhes" onClick={() => setContextOpen(!contextOpen)} active={contextOpen}>
+          <PanelRight className="size-[18px]" />
         </IconBtn>
       </div>
     </header>
@@ -133,16 +87,24 @@ export function Topbar() {
 }
 
 function IconBtn({
-  children, label, onClick, active, className = "",
+  children,
+  label,
+  onClick,
+  active,
+  className = "",
 }: {
-  children: React.ReactNode; label: string; onClick: () => void; active?: boolean; className?: string;
+  children: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  active?: boolean;
+  className?: string;
 }) {
   return (
     <button
       onClick={onClick}
       title={label}
       aria-label={label}
-      className={`grid size-8 place-items-center rounded-[var(--r-sm)] transition-colors ${
+      className={`grid size-9 place-items-center rounded-[var(--r-md)] transition-colors ${
         active ? "bg-elev text-fg" : "text-muted hover:bg-elev hover:text-fg"
       } ${className}`}
     >
@@ -150,5 +112,3 @@ function IconBtn({
     </button>
   );
 }
-
-export const TOPBAR_ICONS = { Check, Zap };
