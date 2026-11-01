@@ -1,55 +1,67 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Eye, EyeOff, KeyRound, Loader2, TriangleAlert, Zap } from "lucide-react";
+import { Check, Eye, EyeOff, KeyRound, Loader2, ShieldCheck, TriangleAlert, Zap } from "lucide-react";
+
+import { useStore } from "@/lib/store";
 
 /**
  * Conexão do motor de linguagem.
  *
- * Uma chave, um botão. Sem lista de fornecedores, sem nomes de terceiros na
- * tela. O campo aparece só se o motor ainda não estiver conectado.
+ * Uma chave, um botão. Sem lista de fornecedores, sem nomes de terceiros.
+ * A chave fica no navegador de quem colou (localStorage, que é do usuário) e
+ * é enviada a cada pedido — o servidor não guarda nada.
  */
 export function EngineTab() {
+  const engineKey = useStore((s) => s.settings.engineKey);
+  const setSettings = useStore((s) => s.setSettings);
+
   const [state, setState] = useState<{ ready: boolean; detail: string } | null>(null);
-  const [key, setKey] = useState("");
+  const [key, setKey] = useState(engineKey);
   const [show, setShow] = useState(false);
   const [saving, setSaving] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
-  const [tested, setTested] = useState(false);
 
+  // o estado do motor é conferido com a chave que está salva
   useEffect(() => {
-    fetch("/api/engine")
+    fetch("/api/engine", {
+      headers: engineKey ? { "x-keew-engine-key": engineKey } : {},
+    })
       .then((r) => r.json())
       .then(setState)
       .catch(() => setState({ ready: false, detail: "Sem resposta do servidor." }));
-  }, []);
+  }, [engineKey]);
 
   const connect = async () => {
+    const clean = key.trim();
+    if (clean.length < 8) return;
+
     setSaving(true);
     setResult(null);
     try {
       const res = await fetch("/api/engine/connect", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ key: key.trim() }),
+        body: JSON.stringify({ key: clean }),
       });
       const data = await res.json();
-      setResult({
-        ok: Boolean(data.ok),
-        text: data.ok
-          ? "Motor conectado. A Keew já responde qualquer assunto."
-          : data.detail || "Não consegui validar essa chave.",
-      });
+
       if (data.ok) {
-        setKey("");
-        setTested(true);
-        const fresh = await fetch("/api/engine").then((r) => r.json());
-        setState(fresh);
+        setSettings({ engineKey: clean });
+        setResult({ ok: true, text: "Motor conectado. A Keew já responde qualquer assunto." });
+      } else {
+        setResult({ ok: false, text: data.detail || "Não consegui validar essa chave." });
       }
     } catch (err) {
       setResult({ ok: false, text: (err as Error).message });
     }
     setSaving(false);
+  };
+
+  const disconnect = () => {
+    setSettings({ engineKey: "" });
+    setKey("");
+    setResult(null);
   };
 
   return (
@@ -66,11 +78,17 @@ export function EngineTab() {
       {state?.ready ? (
         <div className="flex items-start gap-2.5 rounded-[var(--r-lg)] border border-emerald-500/25 bg-emerald-500/[0.06] px-4 py-3.5">
           <Check className="mt-0.5 size-4 shrink-0 text-emerald-400" />
-          <div>
+          <div className="min-w-0 flex-1">
             <p className="text-[13px] font-medium text-fg">Motor conectado</p>
             <p className="mt-0.5 text-[12px] leading-relaxed text-muted">
               A Keew responde qualquer assunto, com raciocínio longo quando for preciso.
             </p>
+            <button
+              onClick={disconnect}
+              className="mt-2.5 text-[12px] font-medium text-muted underline-offset-4 hover:text-fg hover:underline"
+            >
+              Desconectar e apagar a chave
+            </button>
           </div>
         </div>
       ) : (
@@ -114,13 +132,16 @@ export function EngineTab() {
             className="inline-flex h-10 items-center gap-2 rounded-[var(--r-md)] bg-accent px-4 text-[13px] font-medium text-accent-fg transition-opacity hover:opacity-90 disabled:pointer-events-none disabled:opacity-35"
           >
             {saving ? <Loader2 className="size-3.5 animate-spin" /> : <Zap className="size-3.5" />}
-            Conectar motor
+            {saving ? "Conferindo…" : "Conectar motor"}
           </button>
 
-          <p className="text-[11px] leading-relaxed text-subtle">
-            A chave fica só no servidor. Ela nunca vai para o navegador de ninguém e não aparece em log.
-            {" "}Se o servidor já tiver uma chave configurada por variável de ambiente, ela tem prioridade.
-          </p>
+          <div className="flex items-start gap-2 border-t border-line pt-3.5">
+            <ShieldCheck className="mt-0.5 size-3.5 shrink-0 text-subtle" />
+            <p className="text-[11px] leading-relaxed text-subtle">
+              A chave fica no seu navegador e é enviada direto ao provedor a cada mensagem. O servidor da
+              Keew só repassa o pedido — não guarda a chave e não a registra em log.
+            </p>
+          </div>
         </div>
       )}
 
@@ -154,7 +175,6 @@ export function EngineTab() {
             </li>
           ))}
         </ul>
-        {tested && <p className="mt-3 text-[11px] text-subtle">Motor validado neste servidor.</p>}
       </section>
     </div>
   );

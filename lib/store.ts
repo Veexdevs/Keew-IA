@@ -34,6 +34,7 @@ export const DEFAULT_SETTINGS: Settings = {
   userNickname: "Você",
   defaultAgentId: "keew-core",
   defaultModel: "",
+  engineKey: "",
 };
 
 /** A Keew é a única inteligência: não há provedor externo para configurar. */
@@ -512,6 +513,7 @@ async function runStream({ chatId, assistantId, history, agent, system }: RunArg
       headers: {
         "content-type": "application/json",
         ...(s.accessKey ? { "x-keew-key": s.accessKey } : {}),
+        ...(s.settings.engineKey ? { "x-keew-engine-key": s.settings.engineKey } : {}),
       },
       signal: controller.signal,
       body: JSON.stringify({

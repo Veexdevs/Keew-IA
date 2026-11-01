@@ -18,10 +18,10 @@ export type EngineState = {
   detail: string;
 };
 
-export function engineState(): EngineState {
+export function engineState(callerKey?: string): EngineState {
   let ready = false;
   try {
-    ready = isConfigured(resolveConfig());
+    ready = isConfigured(resolveConfig(callerKey));
   } catch {
     ready = false;
   }
