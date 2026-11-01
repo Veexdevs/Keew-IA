@@ -72,12 +72,12 @@ export function Sidebar() {
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-[272px] shrink-0 flex-col border-r border-line bg-panel transition-transform duration-300 ease-[cubic-bezier(0.22,0.8,0.28,1)] lg:relative lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-[268px] shrink-0 flex-col border-r border-line bg-panel transition-transform duration-300 ease-[cubic-bezier(0.22,0.8,0.28,1)] lg:relative lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:hidden"
         }`}
       >
         {/* header */}
-        <div className="flex h-14 items-center justify-between px-3">
+        <div className="flex h-16 items-center justify-between px-4">
           <button
             onClick={() => {
               newChat();
@@ -98,19 +98,16 @@ export function Sidebar() {
         </div>
 
         {/* new chat + search */}
-        <div className="space-y-1.5 px-2.5 pb-2">
+        <div className="space-y-2.5 px-3 pb-3">
           <button
             onClick={() => {
               newChat();
               if (window.innerWidth < 1024) setSidebarOpen(false);
             }}
-            className="group flex w-full items-center gap-2 rounded-[var(--r-md)] bg-accent px-2.5 py-2 text-[12.5px] font-medium text-accent-fg shadow-[0_6px_20px_-10px_rgb(var(--glow)/0.9)] transition-all hover:brightness-110 active:scale-[0.99]"
+            className="group flex h-10 w-full items-center gap-2 rounded-[var(--r-md)] bg-accent px-3.5 text-[13px] font-medium text-accent-fg transition-opacity hover:opacity-90 active:scale-[0.99]"
           >
             <Plus className="size-4" strokeWidth={2.2} />
             <span>Nova conversa</span>
-            <span className="ml-auto rounded border border-white/25 px-1 py-0.5 font-mono text-[9.5px] opacity-80">
-              ⌘K
-            </span>
           </button>
 
           <div className="relative">
@@ -125,7 +122,7 @@ export function Sidebar() {
         </div>
 
         {/* history */}
-        <nav className="scroll-thin flex-1 overflow-y-auto px-2 pb-2">
+        <nav className="scroll-thin flex-1 overflow-y-auto px-2.5 pb-2">
           {groups.length === 0 && (
             <p className="px-2 py-6 text-center text-[11.5px] leading-relaxed text-subtle">
               Nenhuma conversa encontrada.
@@ -136,10 +133,10 @@ export function Sidebar() {
 
           {groups.map(([label, items]) => (
             <div key={label} className="mb-1">
-              <p className="px-2 pb-1 pt-2 text-[9.5px] font-semibold uppercase tracking-[0.14em] text-subtle">
+              <p className="px-2 pb-1.5 pt-3 text-[10px] font-medium uppercase tracking-[0.12em] text-subtle">
                 {label}
               </p>
-              <ul className="space-y-px">
+              <ul className="space-y-0.5">
                 {items.map((chat) => {
                   const active = chat.id === current?.id;
                   const isRenaming = renaming === chat.id;
@@ -165,7 +162,7 @@ export function Sidebar() {
                       ) : (
                         <button
                           onClick={() => selectChat(chat.id)}
-                          className={`flex w-full items-center gap-2 rounded-[var(--r-sm)] py-[7px] pl-2 pr-7 text-left text-[12.5px] transition-colors ${
+                          className={`flex w-full items-center gap-2 rounded-[var(--r-md)] py-2 pl-2.5 pr-7 text-left text-[13px] transition-colors ${
                             active
                               ? "bg-elev text-fg"
                               : "text-muted hover:bg-elev/60 hover:text-fg"
@@ -179,11 +176,6 @@ export function Sidebar() {
                             {chat.pinned ? <Pin className="size-2.5" /> : <MessageSquare className="size-2.5" />}
                           </span>
                           <span className="truncate">{chat.title}</span>
-                          {chat.messages.length > 0 && (
-                            <span className="ml-auto shrink-0 font-mono text-[9.5px] text-subtle">
-                              {chat.messages.filter((m) => m.role === "user").length}
-                            </span>
-                          )}
                         </button>
                       )}
 
@@ -265,7 +257,7 @@ export function Sidebar() {
           <div className="flex items-center gap-1">
             <button
               onClick={() => openSettings("conta")}
-              className="flex min-w-0 flex-1 items-center gap-2 rounded-[var(--r-sm)] px-2 py-1.5 text-left transition-colors hover:bg-elev"
+              className="flex min-w-0 flex-1 items-center gap-2 rounded-[var(--r-md)] px-2.5 py-2 text-left transition-colors hover:bg-elev"
             >
               <span className="grid size-6 shrink-0 place-items-center rounded-full border border-line-strong bg-elev text-[10px] font-semibold uppercase text-fg">
                 {(settings.userNickname || "V").slice(0, 1)}

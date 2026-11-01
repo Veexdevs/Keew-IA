@@ -686,13 +686,24 @@ export function fallback(query: string): EngineResult {
   const topic = q.length > 90 ? `${q.slice(0, 90)}…` : q;
   return {
     skill: "fallback",
-    terminal: false,
-    confidence: 0.2,
-    reasoning: "Nenhuma habilidade determinística cobriu o pedido; o Keew Reason assume a resposta.",
+    terminal: true,
+    confidence: 1,
+    reasoning: "Fora do alcance do núcleo determinístico; nenhum motor de linguagem está conectado.",
     answer:
-      `Sobre **"${topic}"**: é uma pergunta de raciocínio aberto, então quem responde é o Keew Reason.\n\n` +
-      `Se a resposta não vier completa, tente de novo. E se for sobre um documento seu, anexe o arquivo ou ` +
-      `adicione na base de conhecimento para eu responder com o contexto certo.`,
+      `Não consigo responder isso.\n\n` +
+      `**"${topic}"** é uma pergunta de linguagem aberta, e o núcleo da Keew que está rodando aqui é ` +
+      `determinístico: ele resolve conta, data, conversão de unidade, transformação de texto e busca nos ` +
+      `seus documentos — não redige nem interpreta texto livre.\n\n` +
+      `Para a Keew responder qualquer assunto, falta conectar o motor de linguagem dela (uma chave de API ` +
+      `no servidor). Enquanto isso não acontece, prefiro te dizer isso do que inventar uma resposta.\n\n` +
+      `**O que eu resolvo agora:**\n\n` +
+      `| Peça | Exemplo |\n` +
+      `| --- | --- |\n` +
+      `| conta e porcentagem | \`calcule 15% de 240\` |\n` +
+      `| conversão de unidade | \`180 lb em kg\` |\n` +
+      `| data e prazo | \`quantos dias entre hoje e 25/12\` |\n` +
+      `| texto | \`slug de Café com Leite\` · \`resuma: <texto>\` |\n` +
+      `| seus documentos | suba um arquivo em Conhecimento e pergunte sobre ele |`,
   };
 }
 
