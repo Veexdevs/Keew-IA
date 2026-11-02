@@ -1,0 +1,8 @@
+# corpus bruto e tokens em cache são deriváveis de fetch_corpus.py
+data/
+
+# o checkpoint é grande e é artefato de treino; fica versionado à parte
+checkpoints/*.pt
+
+__pycache__/
+*.pyc

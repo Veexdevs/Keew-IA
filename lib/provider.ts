@@ -43,13 +43,15 @@ export type StreamFrame =
  * São detalhe de infraestrutura: nenhum nome daqui é exibido ao usuário, e o
  * modelo público é sempre "keew-1" (ver lib/keew-api.ts).
  */
-type Backend = "deepseek" | "openai-compatible" | "gemini" | "anthropic" | "none";
+type Backend = "deepseek" | "openai-compatible" | "gemini" | "anthropic" | "keew-lm" | "none";
 
 type BackendPreset = { baseUrl: string; model: string; backend: Backend };
 
 const BACKENDS: Record<Backend, BackendPreset> = {
   deepseek: { baseUrl: "https://api.deepseek.com/v1", model: "deepseek-reasoner", backend: "deepseek" },
   "openai-compatible": { baseUrl: "http://127.0.0.1:8080/v1", model: "keew-local", backend: "openai-compatible" },
+  // modelo treinado do zero pela Keew (models/): roda no servidor da casa
+  "keew-lm": { baseUrl: "http://127.0.0.1:8080/v1", model: "keew-lm", backend: "keew-lm" },
   gemini: {
     baseUrl: "https://generativelanguage.googleapis.com/v1beta",
     model: "gemini-2.5-flash",
@@ -95,7 +97,9 @@ export function resolveConfig(callerKey?: string): GatewayConfig {
                   ? "openai-compatible"
                   : "deepseek";
 
-  const preset = BACKENDS[backend];
+  // se a variável aponta para o modelo próprio, usa o preset da casa
+  const chosen = /^keew-lm/i.test(envModel) ? "keew-lm" : backend;
+  const preset = BACKENDS[chosen];
   return {
     // o "kind" público é sempre keew; o backend real fica em baseUrl/model
     kind: "keew",
@@ -117,6 +121,8 @@ function backendOf(cfg: GatewayConfig): Backend {
 export function isConfigured(cfg: GatewayConfig): boolean {
   const backend = backendOf(cfg);
   if (backend === "none") return false;
+  // modelo próprio da Keew: roda no servidor da casa, não pede chave de terceiro
+  if (/^keew-lm/i.test(cfg.model)) return Boolean(cfg.baseUrl);
   // endpoints locais normalmente não exigem chave
   if (backend === "openai-compatible") {
     return Boolean(cfg.apiKey) || /localhost|127\.0\.0\.1|0\.0\.0\.0/.test(cfg.baseUrl);
