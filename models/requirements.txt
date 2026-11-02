@@ -1,0 +1,6 @@
+# Keew LM — dependências do treino e do servidor
+torch>=2.4
+tokenizers>=0.20
+numpy>=1.26
+fastapi>=0.115
+uvicorn>=0.30
