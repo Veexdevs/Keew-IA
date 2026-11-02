@@ -93,6 +93,7 @@ def health() -> dict:
     return {
         "status": "ok",
         "model": MODEL_NAME,
+        "checkpoint_mtime": int(CKPT.stat().st_mtime),
         "params": state["params"],
         "params_m": round(state["params"] / 1e6, 2),
         "step": state["step"],

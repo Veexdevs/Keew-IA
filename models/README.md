@@ -24,6 +24,28 @@ models/
 | arquitetura | 6 camadas · 6 cabeças · d_model 384 · contexto 192 · RMSNorm · atenção causal · pesos amarrados |
 | parâmetros | **13.841.280** (13,84M), contados do modelo, não estimados |
 | treino | AdamW, aquecimento cosseno, 2 núcleos de CPU |
+| resultado | **6.143 passos** · 9,44M tokens vistos · val loss **6,2637** · perplexidade **525** |
+| inferência | **254 tokens/s** em 2 núcleos de CPU (cache de K/V) |
+
+### Amostras do checkpoint final
+
+```
+[O ministro da Fazenda disse que]
+  ... Maia que em, a não… A do. parar no do, na- e expresidente Câmara o- Lula preso
+
+[A Câmara dos Deputados aprovou o projeto]
+  ... Câmara Deputados deputado PMDB - da, Renan (-) e (-) a do Michel não o- da)
+  do da, Cunha do dos. Um da Nacional Saúde, uma de de de Pública
+
+[Segundo o jornal Folha de S]
+  ... juiz Federal em Curitiba … processo prisão expresidente Inácio da … exministro
+  Palocci se em depoimento Lava, expresidente Inácio da Sérgio diz
+```
+
+Dá para ver o que 13,8M de parâmetros aprendeu: pontuação de notícia, os nomes
+do domínio (Lula, Dilma, Cunha, Palocci, PMDB, Lava Jato, Folha), a estrutura
+de oração subordinada — e o que **não** aprendeu: manter um sujeito do começo ao
+fim da frase.
 
 ## O que este modelo é e o que ele não é
 
