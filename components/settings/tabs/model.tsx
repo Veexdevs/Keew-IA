@@ -41,6 +41,12 @@ const LOCAL_SNAPSHOT = {
   corpus_docs: 7137,
   corpus_mb: 28.06,
   corpus_tokens_m: 6.8,
+  /** medições do treino concluído (74,6 min em 2 núcleos de CPU) */
+  steps: 6143,
+  tokens_seen_m: 9.44,
+  val_loss: 6.2637,
+  perplexity: 525,
+  tokens_per_s: 254,
 };
 
 export function ModelTab() {
@@ -100,14 +106,23 @@ export function ModelTab() {
         <dl className="mt-4 grid gap-x-6 gap-y-3 text-[12.5px] sm:grid-cols-2">
           <Row k="Corpus" v={`${LOCAL_SNAPSHOT.corpus_docs.toLocaleString("pt-BR")} textos · ${LOCAL_SNAPSHOT.corpus_mb} MB`} />
           <Row k="Tokens de treino" v={`${LOCAL_SNAPSHOT.corpus_tokens_m}M`} />
-          {online && health && (
-            <>
-              <Row k="Passos" v={health.step.toLocaleString("pt-BR")} />
-              <Row k="Tokens vistos" v={`${(health.tokens_seen / 1e6).toFixed(2)}M`} />
-              <Row k="Perda (validação)" v={health.val_loss.toFixed(4)} />
-              <Row k="Perplexidade" v={health.perplexity.toFixed(0)} />
-            </>
-          )}
+          <Row
+            k="Passos"
+            v={online && health ? health.step.toLocaleString("pt-BR") : LOCAL_SNAPSHOT.steps.toLocaleString("pt-BR")}
+          />
+          <Row
+            k="Tokens vistos"
+            v={online && health ? `${(health.tokens_seen / 1e6).toFixed(2)}M` : `${LOCAL_SNAPSHOT.tokens_seen_m}M`}
+          />
+          <Row
+            k="Perda (validação)"
+            v={online && health ? health.val_loss.toFixed(4) : String(LOCAL_SNAPSHOT.val_loss)}
+          />
+          <Row
+            k="Perplexidade"
+            v={online && health ? health.perplexity.toFixed(0) : `${LOCAL_SNAPSHOT.perplexity}`}
+          />
+          <Row k="Velocidade" v={`${LOCAL_SNAPSHOT.tokens_per_s} tok/s em 2 núcleos`} />
         </dl>
 
         {!online && (
